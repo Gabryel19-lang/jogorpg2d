@@ -347,3 +347,48 @@ Esta versao reforca o visual do Eternal Rift com mais acabamento de RPG 2D pixel
 - bosses com aura visual para ficarem mais marcantes.
 
 Validacao feita: `node --check app.js`.
+
+## Atualização: Espadas elementais de boss
+
+Foram adicionadas quatro espadas elementais desenhadas diretamente no Canvas, sem imagens externas:
+
+- Espada Celeste da Tempestade: obtida no baú do Mini Guardião. Causa raios que saltam para inimigos próximos.
+- Espada Vulcânica: obtida no baú do Rei Slime. Causa explosão de fogo e queimadura.
+- Espada Glacial Cristalina: obtida no baú da Serpente do Lago. Congela e deixa inimigos lentos.
+- Espada Sombria Abissal: obtida no baú do Bruxo Sombrio. Rouba vida e cria energia sombria.
+
+As espadas só são desbloqueadas depois de derrotar o boss correspondente e abrir o baú elemental que aparece no local da batalha.
+
+## Atualização: autosave ao fechar
+
+Esta versão adiciona salvamento automático para reduzir perda de progresso:
+
+- salva ao fechar ou recarregar a página;
+- salva ao trocar de aba ou minimizar no celular;
+- salva periodicamente durante o jogo;
+- salva ao abrir baús de boss e desbloquear armas elementais;
+- guarda um bloco extra `futureState` para preservar armas, inventário, baús, bosses e itens futuros que forem adicionados ao jogo.
+
+Para testar manualmente pelo console do navegador, use:
+
+```js
+ETERNAL_RIFT_FORCE_AUTOSAVE("teste-manual")
+```
+
+
+## Atualização de performance
+
+Esta versão adiciona um modo leve automático para celular e PCs fracos.
+
+- O minimapa agora usa cache e não redesenha o mapa inteiro a cada frame.
+- Inimigos muito distantes entram em modo "dormindo" e só atualizam quando o jogador se aproxima.
+- Efeitos de partículas, névoa, neve, projéteis e textos flutuantes foram limitados.
+- No celular o jogo roda mirando 30 FPS para ficar mais estável.
+- No PC o jogo mantém FPS maior, mas ainda com otimizações.
+- Use `?lite=1` no link para forçar o modo leve.
+- Aperte `F2` para ligar/desligar o modo leve no PC.
+
+
+## Correção de tela cheia
+
+Esta versão remove as faixas laterais do menu inicial e força o painel do jogo/canvas a ocupar 100vw x 100dvh no PC e celular.
