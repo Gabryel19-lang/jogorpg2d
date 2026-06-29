@@ -64,3 +64,13 @@ Atualizacao extra:
 - adicionada rolagem real na grade do inventario;
 - a lateral de detalhes/equipamentos tambem pode rolar quando houver muita informacao;
 - mantidos equipar/desequipar arma, musica medieval divertida com suspense e acoes visiveis do personagem.
+
+## Atualizacao Mobile Gameplay PRO
+- HUD mobile mais compacto e limpo.
+- Canvas/tela cheia melhor ajustado para celular.
+- Camera mobile mais afastada por padrao para ver melhor o mapa.
+- Controles touch menores, mais perto das bordas e menos invasivos.
+- Joystick mais discreto.
+- Minimapa menor e com menos interferencia.
+- Inventario com rolagem melhor no celular.
+- Mantem PC intacto.

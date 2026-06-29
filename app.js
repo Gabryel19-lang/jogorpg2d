@@ -19465,3 +19465,53 @@ if (typeof window !== 'undefined' && typeof window.homeActionMessage !== 'functi
   ensureWeaponUnequipState();
   updateHud();
 })();
+
+/* ==================================================
+   Patch PRO mobile gameplay: canvas, zoom e classes de orientacao
+   ================================================== */
+(function mobileGameplayProPatch() {
+  if (typeof window !== 'undefined' && window.ETERNAL_RIFT_MOBILE_GAMEPLAY_PRO_PATCH) return;
+  if (typeof window !== 'undefined') window.ETERNAL_RIFT_MOBILE_GAMEPLAY_PRO_PATCH = true;
+
+  function isTouchLikeDevice() {
+    return Boolean(window.matchMedia && window.matchMedia('(max-width: 880px), (pointer: coarse)').matches);
+  }
+
+  function updateMobileGameplayClasses() {
+    const mobile = isTouchLikeDevice();
+    document.body.classList.toggle('is-mobile', mobile);
+    document.body.classList.toggle('mobile-landscape', mobile && window.innerWidth >= window.innerHeight);
+    document.body.classList.toggle('mobile-portrait', mobile && window.innerHeight > window.innerWidth);
+  }
+
+  updateMobileGameplayClasses();
+  window.addEventListener('resize', updateMobileGameplayClasses, { passive: true });
+  window.addEventListener('orientationchange', () => setTimeout(updateMobileGameplayClasses, 120), { passive: true });
+
+  const ensureCanvasSizeBeforeMobilePro = ensureCanvasSize;
+  ensureCanvasSize = function ensureCanvasSizeMobileGameplayPro() {
+    ensureCanvasSizeBeforeMobilePro();
+    if (!isTouchLikeDevice()) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const cssWidth = Math.max(320, Math.round(rect.width || window.innerWidth || 960));
+    const cssHeight = Math.max(240, Math.round(rect.height || window.innerHeight || 640));
+    const requestedZoom = Number(urlParams.get('zoom'));
+    const hasManualZoom = Number.isFinite(requestedZoom) && requestedZoom >= 0.65 && requestedZoom <= 1.15;
+    const landscape = cssWidth >= cssHeight;
+    const zoom = hasManualZoom ? requestedZoom : (landscape ? 0.74 : 0.84);
+    const targetWidth = Math.round(cssWidth / zoom);
+    const targetHeight = Math.round(cssHeight / zoom);
+
+    if (Math.abs(canvas.width - targetWidth) > 2 || Math.abs(canvas.height - targetHeight) > 2) {
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+    }
+  };
+
+  const updateDeviceModeBeforeMobilePro = updateDeviceMode;
+  updateDeviceMode = function updateDeviceModeMobileGameplayPro() {
+    updateDeviceModeBeforeMobilePro();
+    updateMobileGameplayClasses();
+  };
+})();
