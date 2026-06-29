@@ -7,8 +7,9 @@ Subtitulo: **A Jornada Entre Dimensoes**.
 
 Criadores:
 
-- Gabryel Garcia
-- Victor Ricardo Fonseca Baldin
+- DESENVOLVEDOR: Gabryel Garcia
+- DESIGNER: Victor Ricardo Fonseca Baldin
+- ROTEIRISTA: José Augusto Trindade de Lima
 
 ## Como executar
 
