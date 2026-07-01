@@ -34044,3 +34044,61 @@ if (typeof window !== 'undefined' && typeof window.homeActionMessage !== 'functi
     applyRealMobileInventoryClass();
   }, 250);
 })();
+
+
+/* ==================================================
+   ETERNAL RIFT: correção do botão fechar inventário no mobile
+   - o CSS compacto estava impedindo o painel de sumir
+   - agora a classe hidden vence de verdade
+   ================================================== */
+(function eternalRiftInventoryCloseFixPatch() {
+  if (typeof window !== "undefined" && window.ETERNAL_RIFT_INVENTORY_CLOSE_FIX_PATCH) return;
+  if (typeof window !== "undefined") window.ETERNAL_RIFT_INVENTORY_CLOSE_FIX_PATCH = true;
+
+  function forceInventoryClosedVisualState() {
+    if (!inventoryPanel) return;
+    if (inventoryPanel.classList.contains("hidden") || inventoryOpen === false) {
+      inventoryPanel.classList.add("hidden");
+      inventoryPanel.style.display = "none";
+      document.body?.classList.remove("real-mobile-inventory-active");
+    }
+  }
+
+  function forceInventoryOpenVisualState() {
+    if (!inventoryPanel) return;
+    if (inventoryOpen === true && !inventoryPanel.classList.contains("hidden")) {
+      inventoryPanel.style.display = "";
+    }
+  }
+
+  const toggleInventoryBeforeCloseFix = toggleInventory;
+  toggleInventory = function toggleInventoryCloseFix(force) {
+    const result = toggleInventoryBeforeCloseFix(force);
+    if (inventoryOpen) {
+      forceInventoryOpenVisualState();
+    } else {
+      forceInventoryClosedVisualState();
+    }
+    return result;
+  };
+
+  closeInventoryButton?.addEventListener("click", () => {
+    inventoryOpen = false;
+    inventoryPanel?.classList.add("hidden");
+    forceInventoryClosedVisualState();
+    playSound?.("inventoryClose");
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if ((event.key === "Escape" || event.key === "i" || event.key === "I") && inventoryOpen) {
+      inventoryOpen = false;
+      inventoryPanel?.classList.add("hidden");
+      forceInventoryClosedVisualState();
+    }
+  }, true);
+
+  setInterval(() => {
+    if (inventoryOpen === false) forceInventoryClosedVisualState();
+    else forceInventoryOpenVisualState();
+  }, 500);
+})();

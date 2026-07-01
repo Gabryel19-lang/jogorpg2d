@@ -5585,3 +5585,17 @@ body.is-mobile .gear-summary-card strong {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
+
+
+/* ===== Correção: inventário mobile precisa fechar de verdade ===== */
+#adventurer-bag.hidden,
+#inventoryPanel.hidden,
+.adventurer-bag.hidden,
+.adventurer-bag.real-mobile-inventory.hidden,
+body.is-mobile .adventurer-bag.hidden,
+body.is-mobile .adventurer-bag.real-mobile-inventory.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
