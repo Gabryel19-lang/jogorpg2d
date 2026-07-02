@@ -592,3 +592,13 @@ Regras recomendadas para teste no Realtime Database:
 - nomes de jogadores agora têm cores bem visíveis e selo PLAYER.
 - HUD online mostra HP e Mana mais bonitos.
 - projéteis dos jogadores agora aparecem para os outros jogadores.
+
+
+## Upgrade pesado dos novos biomas
+- Terras da Forja Ardente, Floresta da Meia-Noite e Ruínas Submersas receberam MUITO mais conteúdo visual e gameplay.
+- Mais inimigos espalhados em cada bioma.
+- Bosses agora têm patrulha maior e habilidades especiais.
+- Bioma oceânico ganhou respiradouros que recuperam oxigênio.
+- Bioma sombrio ficou mais forte à noite.
+- Bioma vulcânico ficou mais perigoso perto da lava.
+- Mais recursos coletáveis, mais decorações e mais pontos de interesse.
