@@ -281,7 +281,7 @@ const dimensionQuest = {
   missionDone: false
 };
 
-const dimensionParticles = Array.from({ length: 70 }, (_, index) => ({
+const dimensionParticles = Array.from({ length: 40 }, (_, index) => ({
   x: ((index * 97) % CRYSTAL_WIDTH),
   y: ((index * 151) % CRYSTAL_HEIGHT),
   size: 2 + (index % 3),
@@ -1781,7 +1781,23 @@ function handleMapTransitions() {
 
 function update(delta) {
   ensureCanvasSize();
-  if (!["village", "home", "shopInterior", "mayorInterior", "crystalDimension"].includes(currentScene)) {
+  if (![
+    "village",
+    "home",
+    "shopInterior",
+    "mayorInterior",
+    "crystalDimension",
+    "royalCastle",
+    "royalThroneRoom",
+    "royalBarracks",
+    "royalLibrary",
+    "royalArmory",
+    "royalDungeon",
+    "royalSecretPassages",
+    "royalMageTower",
+    "royalGardens",
+    "royalVault"
+  ].includes(currentScene)) {
     setActiveScene("village");
   }
 
@@ -10543,7 +10559,7 @@ if (typeof window !== "undefined" && !window.ETERNAL_RIFT_AUTOSAVE_FUTURE_PATCH)
 
   autosaveTimerId = window.setInterval(() => {
     if (gameStarted && !gameOver) autosaveNow("interval");
-  }, 10000);
+  }, 45000);
 
   window.ETERNAL_RIFT_FORCE_AUTOSAVE = autosaveNow;
 }
@@ -19768,7 +19784,7 @@ if (typeof window !== 'undefined' && typeof window.homeActionMessage !== 'functi
   const caveBackgroundImage = typeof Image !== "undefined" ? new Image() : null;
   if (caveBackgroundImage) caveBackgroundImage.src = CAVE_IMAGE_SRC;
 
-  const caveParticles = Array.from({ length: 96 }, (_, index) => ({
+  const caveParticles = Array.from({ length: 36 }, (_, index) => ({
     x: ((index * 173) % CAVE_WIDTH),
     y: ((index * 97) % CAVE_HEIGHT),
     size: 1 + (index % 3),
@@ -20219,16 +20235,25 @@ if (typeof window !== 'undefined' && typeof window.homeActionMessage !== 'functi
   };
 
   function drawCrystalMineMap() {
+    const viewX = Math.max(0, Math.floor(camera.x - 16));
+    const viewY = Math.max(0, Math.floor(camera.y - 16));
+    const viewW = Math.min(CAVE_WIDTH - viewX, Math.ceil(canvas.width + 32));
+    const viewH = Math.min(CAVE_HEIGHT - viewY, Math.ceil(canvas.height + 32));
+
     ctx.fillStyle = "#060914";
-    ctx.fillRect(0, 0, CAVE_WIDTH, CAVE_HEIGHT);
+    ctx.fillRect(viewX, viewY, viewW, viewH);
 
     const imageReady = caveBackgroundImage && caveBackgroundImage.complete && caveBackgroundImage.naturalWidth > 0;
     if (imageReady) {
       const oldSmoothing = ctx.imageSmoothingEnabled;
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(caveBackgroundImage, 0, 0, CAVE_WIDTH, CAVE_HEIGHT);
+      const srcX = Math.max(0, Math.floor(viewX * caveBackgroundImage.naturalWidth / CAVE_WIDTH));
+      const srcY = Math.max(0, Math.floor(viewY * caveBackgroundImage.naturalHeight / CAVE_HEIGHT));
+      const srcW = Math.min(caveBackgroundImage.naturalWidth - srcX, Math.ceil(viewW * caveBackgroundImage.naturalWidth / CAVE_WIDTH));
+      const srcH = Math.min(caveBackgroundImage.naturalHeight - srcY, Math.ceil(viewH * caveBackgroundImage.naturalHeight / CAVE_HEIGHT));
+      ctx.drawImage(caveBackgroundImage, srcX, srcY, srcW, srcH, viewX, viewY, viewW, viewH);
       ctx.imageSmoothingEnabled = oldSmoothing;
-      drawCaveRailGlow();
+      if (!isMobile) drawCaveRailGlow();
     } else {
       drawProceduralCaveTiles();
     }
@@ -21558,7 +21583,7 @@ if (typeof window !== 'undefined' && typeof window.homeActionMessage !== 'functi
   const acidBackgroundImage = typeof Image !== "undefined" ? new Image() : null;
   if (acidBackgroundImage) acidBackgroundImage.src = ACID_IMAGE_SRC;
 
-  const acidParticles = Array.from({ length: 120 }, (_, index) => ({
+  const acidParticles = Array.from({ length: 48 }, (_, index) => ({
     x: (index * 191) % ACID_WIDTH,
     y: (index * 131) % ACID_HEIGHT,
     size: 1 + (index % 3),
@@ -22122,17 +22147,26 @@ if (typeof window !== 'undefined' && typeof window.homeActionMessage !== 'functi
   };
 
   function drawAcidBackdrop() {
+    const viewX = Math.max(0, Math.floor(camera.x - 16));
+    const viewY = Math.max(0, Math.floor(camera.y - 16));
+    const viewW = Math.min(ACID_WIDTH - viewX, Math.ceil(canvas.width + 32));
+    const viewH = Math.min(ACID_HEIGHT - viewY, Math.ceil(canvas.height + 32));
+
     ctx.fillStyle = "#0a1209";
-    ctx.fillRect(0, 0, ACID_WIDTH, ACID_HEIGHT);
+    ctx.fillRect(viewX, viewY, viewW, viewH);
 
     if (acidBackgroundImage && acidBackgroundImage.complete && acidBackgroundImage.naturalWidth > 0) {
-      ctx.drawImage(acidBackgroundImage, 0, 0, ACID_WIDTH, ACID_HEIGHT);
+      const srcX = Math.max(0, Math.floor(viewX * acidBackgroundImage.naturalWidth / ACID_WIDTH));
+      const srcY = Math.max(0, Math.floor(viewY * acidBackgroundImage.naturalHeight / ACID_HEIGHT));
+      const srcW = Math.min(acidBackgroundImage.naturalWidth - srcX, Math.ceil(viewW * acidBackgroundImage.naturalWidth / ACID_WIDTH));
+      const srcH = Math.min(acidBackgroundImage.naturalHeight - srcY, Math.ceil(viewH * acidBackgroundImage.naturalHeight / ACID_HEIGHT));
+      ctx.drawImage(acidBackgroundImage, srcX, srcY, srcW, srcH, viewX, viewY, viewW, viewH);
     } else {
       drawAcidFallbackLayout();
     }
 
-    ctx.fillStyle = "rgba(154,255,114,0.06)";
-    ctx.fillRect(0, 0, ACID_WIDTH, ACID_HEIGHT);
+    ctx.fillStyle = "rgba(154,255,114,0.045)";
+    ctx.fillRect(viewX, viewY, viewW, viewH);
     const time = performance.now() / 1000;
     for (const particle of acidParticles) {
       const px = particle.x;
@@ -34100,7 +34134,7 @@ if (typeof window !== 'undefined' && typeof window.homeActionMessage !== 'functi
   setInterval(() => {
     if (inventoryOpen === false) forceInventoryClosedVisualState();
     else forceInventoryOpenVisualState();
-  }, 500);
+  }, 1800);
 })();
 
 
@@ -34149,8 +34183,15 @@ if (typeof window !== 'undefined' && typeof window.homeActionMessage !== 'functi
     }
 
     document.body?.classList.remove("real-mobile-inventory-active");
-    keys?.clear?.();
-    if (typeof resetJoystick === "function") resetJoystick();
+
+    // IMPORTANTE: não limpar input aqui sem um evento real do jogador.
+    // Antes, o setInterval de segurança chamava hardCloseInventoryPanel() a cada 2.2s
+    // e isso executava keys.clear() + resetJoystick(), fazendo o personagem parar em
+    // pulsos enquanto o jogador segurava WASD ou o joystick. Foi a causa do andar travado.
+    if (event) {
+      keys?.clear?.();
+      if (typeof resetJoystick === "function") resetJoystick();
+    }
     return false;
   }
 
@@ -34189,7 +34230,11 @@ if (typeof window !== 'undefined' && typeof window.homeActionMessage !== 'functi
   renderInventory = function renderInventoryHardCloseFinal() {
     const result = renderInventoryBeforeHardCloseFinal();
     const panel = getInventoryPanelSafe();
-    if (!inventoryOpen && panel) hardCloseInventoryPanel();
+    if (!inventoryOpen && panel) {
+      panel.classList.add("hidden", "force-closed-inventory");
+      panel.setAttribute("data-force-closed", "true");
+      panel.setAttribute("aria-hidden", "true");
+    }
     return result;
   };
 
@@ -34200,11 +34245,3019 @@ if (typeof window !== 'undefined' && typeof window.homeActionMessage !== 'functi
     }
   }, true);
 
+  // Manutenção leve: mantém o painel fechado visualmente sem mexer nos controles.
+  // Não chama hardCloseInventoryPanel() em loop, porque isso travava o movimento.
   setInterval(() => {
     const panel = getInventoryPanelSafe();
-    if (!panel) return;
-    if (!inventoryOpen || panel.dataset.forceClosed === "true") {
-      hardCloseInventoryPanel();
+    if (!panel || inventoryOpen) return;
+    panel.classList.add("hidden", "force-closed-inventory");
+    panel.setAttribute("data-force-closed", "true");
+    panel.setAttribute("aria-hidden", "true");
+    panel.style.setProperty("display", "none", "important");
+    panel.style.setProperty("visibility", "hidden", "important");
+    panel.style.setProperty("opacity", "0", "important");
+    panel.style.setProperty("pointer-events", "none", "important");
+    document.body?.classList.remove("real-mobile-inventory-active");
+  }, 2200);
+})();
+
+
+/* ==================================================
+   ETERNAL RIFT: Castelo Real - capital do reino
+   - nova area grande com muralhas, jardins, salas internas, NPCs e missoes
+   - tudo desenhado por Canvas, sem imagens externas
+   ================================================== */
+(function eternalRiftRoyalCastlePatch() {
+  if (typeof window !== "undefined" && window.ETERNAL_RIFT_ROYAL_CASTLE_PATCH) return;
+  if (typeof window !== "undefined") window.ETERNAL_RIFT_ROYAL_CASTLE_PATCH = true;
+
+  const ROYAL = {
+    CASTLE: "royalCastle",
+    THRONE: "royalThroneRoom",
+    BARRACKS: "royalBarracks",
+    LIBRARY: "royalLibrary",
+    ARMORY: "royalArmory",
+    DUNGEON: "royalDungeon",
+    SECRET: "royalSecretPassages",
+    MAGE: "royalMageTower",
+    GARDENS: "royalGardens",
+    VAULT: "royalVault"
+  };
+
+  const ROYAL_SCENES = new Set(Object.values(ROYAL));
+  const ROYAL_CONFIG = {
+    [ROYAL.CASTLE]: { name: "Castelo Real", cols: 72, rows: 54, palette: "exterior" },
+    [ROYAL.THRONE]: { name: "Sala do Trono", cols: 44, rows: 32, palette: "royalInterior" },
+    [ROYAL.BARRACKS]: { name: "Quarteis", cols: 40, rows: 28, palette: "barracks" },
+    [ROYAL.LIBRARY]: { name: "Biblioteca Magica", cols: 42, rows: 30, palette: "library" },
+    [ROYAL.ARMORY]: { name: "Arsenal", cols: 38, rows: 28, palette: "armory" },
+    [ROYAL.DUNGEON]: { name: "Masmorras", cols: 44, rows: 32, palette: "dungeon" },
+    [ROYAL.SECRET]: { name: "Passagens Secretas", cols: 46, rows: 30, palette: "secret" },
+    [ROYAL.MAGE]: { name: "Torre do Mago", cols: 40, rows: 42, palette: "mage" },
+    [ROYAL.GARDENS]: { name: "Jardins Reais", cols: 48, rows: 34, palette: "gardens" },
+    [ROYAL.VAULT]: { name: "Cofre do Reino", cols: 36, rows: 26, palette: "vault" }
+  };
+
+  const royalObjects = {};
+  let royalExitGraceTimer = 0;
+  let royalGateAdded = false;
+  let royalCastleBuilt = false;
+
+  const royalParticles = Array.from({ length: 36 }, (_, index) => ({
+    x: ((index * 173) % (72 * TILE)),
+    y: ((index * 97) % (54 * TILE)),
+    phase: index * 0.63,
+    speed: 0.45 + (index % 5) * 0.08,
+    color: index % 3 === 0 ? "#fff4ac" : index % 3 === 1 ? "#55e8ff" : "#ffb45f"
+  }));
+
+  function isRoyalScene(scene = currentScene) {
+    return ROYAL_SCENES.has(scene);
+  }
+
+  function getRoyalConfig(scene = currentScene) {
+    return ROYAL_CONFIG[scene] || ROYAL_CONFIG[ROYAL.CASTLE];
+  }
+
+  function getRoyalWidth(scene = currentScene) {
+    return getRoyalConfig(scene).cols * TILE;
+  }
+
+  function getRoyalHeight(scene = currentScene) {
+    return getRoyalConfig(scene).rows * TILE;
+  }
+
+  function createRoyalDefaultState() {
+    return {
+      entered: false,
+      vaultAccess: false,
+      vaultOpened: false,
+      royalSealGranted: false,
+      foundSecretPassage: false,
+      readLore: {},
+      discoveredRooms: {},
+      crownClues: {
+        library: false,
+        arsenal: false,
+        secret: false
+      },
+      commanderSpoken: false,
+      frontierDefeated: 0,
+      traitorRevealed: false,
+      dungeonThreatDefeated: false,
+      mageConsulted: false,
+      crisisKills: 0,
+      missions: {
+        frontierThreat: "notStarted",
+        crownSecret: "notStarted",
+        courtRebellion: "notStarted",
+        realmCrisis: "notStarted"
+      }
+    };
+  }
+
+  function ensureRoyalCastleState() {
+    if (!questBook.royalCastle || typeof questBook.royalCastle !== "object") {
+      questBook.royalCastle = createRoyalDefaultState();
     }
+
+    const defaults = createRoyalDefaultState();
+    const state = questBook.royalCastle;
+    for (const [key, value] of Object.entries(defaults)) {
+      if (state[key] === undefined) {
+        state[key] = Array.isArray(value) ? [...value] : (value && typeof value === "object" ? { ...value } : value);
+      }
+    }
+    if (!state.readLore || typeof state.readLore !== "object") state.readLore = {};
+    if (!state.discoveredRooms || typeof state.discoveredRooms !== "object") state.discoveredRooms = {};
+    if (!state.crownClues || typeof state.crownClues !== "object") state.crownClues = { ...defaults.crownClues };
+    if (!state.missions || typeof state.missions !== "object") state.missions = { ...defaults.missions };
+    for (const [key, value] of Object.entries(defaults.missions)) {
+      if (!state.missions[key]) state.missions[key] = value;
+    }
+    return state;
+  }
+
+  function resetRoyalCastleState() {
+    questBook.royalCastle = createRoyalDefaultState();
+    resetRoyalEnemies();
+  }
+
+  function royalBlock(tileX, tileY, widthTiles, heightTiles) {
+    return {
+      type: "block",
+      x: tileX * TILE,
+      y: tileY * TILE,
+      width: widthTiles * TILE,
+      height: heightTiles * TILE,
+      solid: true
+    };
+  }
+
+  function royalDoor(tileX, tileY, widthTiles, heightTiles, targetScene, message, options = {}) {
+    return {
+      type: "royalDoor",
+      role: options.role || "door",
+      targetScene,
+      targetTileX: options.targetTileX,
+      targetTileY: options.targetTileY,
+      targetDirection: options.targetDirection || "down",
+      x: tileX * TILE + (options.offsetX || 0),
+      y: tileY * TILE + (options.offsetY || 0),
+      width: widthTiles * TILE,
+      height: heightTiles * TILE,
+      solid: false,
+      message
+    };
+  }
+
+  function royalFeature(tileX, tileY, kind, options = {}) {
+    return {
+      type: "royalFeature",
+      kind,
+      role: options.role || "",
+      stateKey: options.stateKey || "",
+      x: tileX * TILE + (options.offsetX || 0),
+      y: tileY * TILE + (options.offsetY || 0),
+      width: options.width || TILE,
+      height: options.height || TILE,
+      solid: Boolean(options.solid),
+      message: options.message || "",
+      color: options.color || "",
+      direction: options.direction || "down",
+      label: options.label || ""
+    };
+  }
+
+  function royalBook(tileX, tileY, stateKey, message) {
+    return {
+      type: "royalBook",
+      stateKey,
+      x: tileX * TILE + 6,
+      y: tileY * TILE + 8,
+      width: 22,
+      height: 18,
+      solid: false,
+      message
+    };
+  }
+
+  function royalNpc(tileX, tileY, name, message, role, options = {}) {
+    const obj = npc(tileX, tileY, name, message, role);
+    obj.royalNpc = true;
+    obj.speed = options.speed || obj.speed || 28;
+    if (options.patrol) {
+      obj.patrol = options.patrol.map(([x, y]) => ({ x: x * TILE + 5, y: y * TILE + 4 }));
+      obj.patrolIndex = 0;
+    }
+    return obj;
+  }
+
+  function royalEnemy(tileX, tileY, kind, options = {}) {
+    const obj = enemy(tileX, tileY, kind);
+    obj.royalEnemy = true;
+    obj.royalMissionKind = options.missionKind || "";
+    obj.dropTable = { coin: 0, potion: 0, powerUp: 0, loot: 0 };
+    obj.coinReward = options.coinReward || Math.max(4, Math.ceil((obj.coinReward || 4) * 0.7));
+    obj.coinsReward = obj.coinReward;
+    obj.aggroRange = options.aggroRange || obj.aggroRange || 250;
+    obj.spawnX = tileX * TILE + 4;
+    obj.spawnY = tileY * TILE + 4;
+    return obj;
+  }
+
+  function buildRoyalCastleObjects() {
+    if (royalCastleBuilt) return;
+    royalCastleBuilt = true;
+
+    royalObjects[ROYAL.CASTLE] = [
+      royalBlock(0, 0, 72, 1), royalBlock(0, 53, 72, 1), royalBlock(0, 0, 1, 54), royalBlock(71, 0, 1, 54),
+      royalBlock(8, 5, 56, 2), royalBlock(8, 44, 24, 2), royalBlock(40, 44, 24, 2),
+      royalBlock(8, 7, 2, 37), royalBlock(62, 7, 2, 37),
+      royalBlock(19, 7, 34, 14), royalBlock(10, 25, 12, 9), royalBlock(50, 25, 12, 9),
+      royalBlock(9, 37, 12, 6), royalBlock(51, 8, 9, 12),
+
+      royalDoor(34, 42, 4, 3, "village", "Portao Real: pressione E para voltar a vila.", { role: "exitGate" }),
+      royalDoor(34, 20, 4, 2, ROYAL.THRONE, "Entrada da Sala do Trono: pressione E para entrar.", { targetTileX: 21, targetTileY: 28, targetDirection: "up" }),
+      royalDoor(13, 32, 3, 2, ROYAL.BARRACKS, "Porta dos Quarteis: pressione E para entrar.", { targetTileX: 19, targetTileY: 25, targetDirection: "up" }),
+      royalDoor(23, 20, 3, 2, ROYAL.LIBRARY, "Ala da Biblioteca Magica: pressione E para entrar.", { targetTileX: 20, targetTileY: 27, targetDirection: "up" }),
+      royalDoor(55, 32, 3, 2, ROYAL.ARMORY, "Arsenal Real: pressione E para entrar.", { targetTileX: 18, targetTileY: 25, targetDirection: "up" }),
+      royalDoor(14, 40, 3, 2, ROYAL.DUNGEON, "Escadaria para as Masmorras: pressione E para descer.", { targetTileX: 21, targetTileY: 28, targetDirection: "up" }),
+      royalDoor(54, 18, 3, 2, ROYAL.MAGE, "Torre do Mago Real: pressione E para subir.", { targetTileX: 19, targetTileY: 38, targetDirection: "up" }),
+      royalDoor(35, 37, 3, 2, ROYAL.GARDENS, "Arco dos Jardins Reais: pressione E para visitar.", { targetTileX: 23, targetTileY: 30, targetDirection: "up" }),
+
+      royalFeature(34, 31, "fountain", { width: TILE * 4, height: TILE * 4, solid: true, message: "Fonte da Capital: agua azul corre sobre runas antigas do reino." }),
+      royalFeature(17, 34, "statue", { width: 32, height: 52, solid: true, label: "fundador", message: "Estatua do fundador: a espada aponta para o trono." }),
+      royalFeature(53, 34, "statue", { width: 32, height: 52, solid: true, label: "rainha antiga", message: "Estatua da primeira rainha maga do reino." }),
+      royalFeature(25, 34, "gardenBed", { width: TILE * 3, height: TILE * 2, color: "#ff7ab5" }),
+      royalFeature(44, 34, "gardenBed", { width: TILE * 3, height: TILE * 2, color: "#55e8ff" }),
+      royalFeature(28, 27, "banner", { width: 20, height: 48, color: "#1f65d6" }),
+      royalFeature(43, 27, "banner", { width: 20, height: 48, color: "#1f65d6" }),
+      royalFeature(32, 23, "torch", { width: 18, height: 34 }),
+      royalFeature(39, 23, "torch", { width: 18, height: 34 }),
+      royalFeature(31, 40, "torch", { width: 18, height: 34 }),
+      royalFeature(40, 40, "torch", { width: 18, height: 34 }),
+      royalFeature(24, 40, "benchRoyal", { width: 52, height: 18, solid: true }),
+      royalFeature(45, 40, "benchRoyal", { width: 52, height: 18, solid: true }),
+
+      royalNpc(33, 41, "Guarda Real", "Guarda Real: Bem-vindo ao Castelo Real. A capital protege todo o reino.", "royalGuard", { patrol: [[33, 41], [38, 41]] }),
+      royalNpc(38, 41, "Guarda de Elite", "Guarda de Elite: So os leais passam pelo portao interno.", "royalEliteGuard", { patrol: [[38, 41], [33, 41]] }),
+      royalNpc(30, 29, "Arauto", "Arauto: Na capital, cada pedra tem uma historia e cada bandeira guarda um juramento.", "royalNoble"),
+      royalNpc(47, 31, "Cavaleiro Real", "Cavaleiro Real: Os quarteis treinam dia e noite para defender a coroa.", "royalGuard")
+    ];
+
+    royalObjects[ROYAL.THRONE] = [
+      royalBlock(0, 0, 44, 2), royalBlock(0, 0, 1, 32), royalBlock(43, 0, 1, 32),
+      royalBlock(0, 31, 19, 1), royalBlock(25, 31, 19, 1),
+      royalBlock(16, 5, 12, 4),
+      royalBlock(7, 11, 2, 7), royalBlock(35, 11, 2, 7),
+      royalDoor(20, 29, 4, 2, ROYAL.CASTLE, "Saida para o patio real.", { targetTileX: 35, targetTileY: 23, targetDirection: "down" }),
+      royalDoor(38, 8, 3, 2, ROYAL.VAULT, "Porta blindada do Cofre do Reino.", { role: "vaultDoor", targetTileX: 17, targetTileY: 22, targetDirection: "up" }),
+      royalDoor(4, 10, 2, 2, ROYAL.SECRET, "Uma tapecaria esconde uma passagem secreta.", { role: "secretDoor", targetTileX: 6, targetTileY: 8, targetDirection: "right" }),
+      royalFeature(18, 4, "throne", { width: 52, height: 68, solid: true, color: "#1f65d6" }),
+      royalFeature(24, 4, "throne", { width: 52, height: 68, solid: true, color: "#d63c65" }),
+      royalFeature(20, 10, "royalTable", { width: TILE * 4, height: TILE * 2, solid: true, message: "Mesa do conselho: mapas das fronteiras e selos reais estao abertos." }),
+      royalFeature(11, 7, "banner", { width: 22, height: 56, color: "#1f65d6" }),
+      royalFeature(31, 7, "banner", { width: 22, height: 56, color: "#1f65d6" }),
+      royalFeature(14, 15, "pillar", { width: 30, height: 68, solid: true }),
+      royalFeature(29, 15, "pillar", { width: 30, height: 68, solid: true }),
+      royalFeature(6, 20, "torch", { width: 18, height: 34 }),
+      royalFeature(37, 20, "torch", { width: 18, height: 34 }),
+      royalNpc(19, 7, "Rei Aldren", "Rei Aldren: O reino precisa de olhos atentos nas fronteiras.", "royalKing"),
+      royalNpc(24, 7, "Rainha Seraphine", "Rainha Seraphine: A Coroa guarda segredos mais antigos que nossas muralhas.", "royalQueen"),
+      royalNpc(16, 11, "Guarda de Elite", "Guarda de Elite: Pelo trono, pela coroa e pelo povo.", "royalEliteGuard"),
+      royalNpc(28, 11, "Guarda de Elite", "Guarda de Elite: Nenhuma sombra atravessa esta sala.", "royalEliteGuard"),
+      royalNpc(12, 18, "Conselheira Elira", "Conselheira Elira: Ouvi rumores inquietos entre nobres. Fale comigo se puder investigar.", "royalAdvisor"),
+      royalNpc(33, 18, "Lord Varick", "Lord Varick: A corte muda quando ninguem esta olhando.", "royalTraitor")
+    ];
+
+    royalObjects[ROYAL.BARRACKS] = [
+      royalBlock(0, 0, 40, 2), royalBlock(0, 0, 1, 28), royalBlock(39, 0, 1, 28),
+      royalBlock(0, 27, 17, 1), royalBlock(23, 27, 17, 1),
+      royalDoor(18, 25, 4, 2, ROYAL.CASTLE, "Saida dos Quarteis.", { targetTileX: 14, targetTileY: 34, targetDirection: "down" }),
+      royalFeature(4, 4, "barracksBed", { width: 76, height: 34, solid: true }),
+      royalFeature(4, 8, "barracksBed", { width: 76, height: 34, solid: true }),
+      royalFeature(29, 4, "barracksBed", { width: 76, height: 34, solid: true }),
+      royalFeature(29, 8, "barracksBed", { width: 76, height: 34, solid: true }),
+      royalFeature(8, 15, "trainingDummy", { width: 28, height: 46, solid: true }),
+      royalFeature(13, 15, "trainingDummy", { width: 28, height: 46, solid: true }),
+      royalFeature(25, 14, "weaponRack", { width: 70, height: 48, solid: true }),
+      royalFeature(18, 8, "royalTable", { width: TILE * 4, height: TILE * 2, solid: true }),
+      royalFeature(18, 18, "armorStand", { width: 28, height: 54, solid: true }),
+      royalNpc(19, 11, "Comandante Roderic", "Comandante Roderic: Se o rei pediu ajuda, fale comigo e entao limpe as ameacas fora do castelo.", "royalCommander"),
+      royalNpc(10, 18, "Soldado Mira", "Soldado Mira: Dica de combate: ataque, recue e use o dash quando o inimigo levantar a arma.", "royalGuard", { patrol: [[10, 18], [15, 18]] }),
+      royalNpc(29, 19, "Cavaleiro Brenn", "Cavaleiro Brenn: Uma boa defesa comeca antes da batalha.", "royalEliteGuard", { patrol: [[29, 19], [24, 19]] })
+    ];
+
+    royalObjects[ROYAL.LIBRARY] = [
+      royalBlock(0, 0, 42, 2), royalBlock(0, 0, 1, 30), royalBlock(41, 0, 1, 30),
+      royalBlock(0, 29, 18, 1), royalBlock(24, 29, 18, 1),
+      royalBlock(2, 3, 4, 10), royalBlock(36, 3, 4, 10), royalBlock(8, 3, 8, 2), royalBlock(25, 3, 8, 2),
+      royalDoor(19, 27, 4, 2, ROYAL.CASTLE, "Saida da Biblioteca Magica.", { targetTileX: 24, targetTileY: 23, targetDirection: "down" }),
+      royalDoor(4, 15, 2, 2, ROYAL.SECRET, "Estante falsa: pressione E para abrir a Passagem Secreta.", { role: "secretDoor", targetTileX: 8, targetTileY: 18, targetDirection: "right" }),
+      royalFeature(18, 8, "bookTable", { width: TILE * 6, height: TILE * 3, solid: true, message: "Mesa de estudos: tinta prateada desenha rotas invisiveis no mapa." }),
+      royalFeature(10, 16, "magicCrystal", { width: 30, height: 48, solid: true, color: "#55e8ff" }),
+      royalFeature(30, 16, "magicCrystal", { width: 30, height: 48, solid: true, color: "#b46dff" }),
+      royalFeature(20, 19, "candleCluster", { width: 54, height: 28 }),
+      royalBook(19, 9, "historiaCapital", "Livro: A capital foi erguida sobre sete veios de magia antiga."),
+      royalBook(23, 9, "crownLibrary", "Livro lacrado: a Coroa foi tocada por uma chave azul antes de desaparecer."),
+      royalBook(12, 21, "riftLore", "Livro das Fendas: quando uma fenda canta, outra responde nas profundezas."),
+      royalNpc(20, 14, "Arquimaga Lyra", "Arquimaga Lyra: Conhecimento e perigo dormem na mesma estante.", "royalLibrarian")
+    ];
+
+    royalObjects[ROYAL.ARMORY] = [
+      royalBlock(0, 0, 38, 2), royalBlock(0, 0, 1, 28), royalBlock(37, 0, 1, 28),
+      royalBlock(0, 27, 16, 1), royalBlock(22, 27, 16, 1),
+      royalDoor(17, 25, 4, 2, ROYAL.CASTLE, "Saida do Arsenal.", { targetTileX: 56, targetTileY: 34, targetDirection: "down" }),
+      royalDoor(34, 12, 2, 2, ROYAL.SECRET, "Uma alavanca abre um painel atras dos escudos.", { role: "secretDoor", targetTileX: 38, targetTileY: 13, targetDirection: "left" }),
+      royalFeature(4, 5, "weaponRack", { width: 88, height: 50, solid: true }),
+      royalFeature(4, 12, "armorStand", { width: 34, height: 58, solid: true }),
+      royalFeature(29, 5, "weaponRack", { width: 88, height: 50, solid: true }),
+      royalFeature(28, 13, "forge", { width: 78, height: 58, solid: true, message: "Forja Real: brasas azuis mantem armas raras acordadas." }),
+      royalFeature(17, 11, "royalTable", { width: TILE * 4, height: TILE * 2, solid: true, message: "Mesa de manutencao: uma marca de coroa foi arrancada daqui." }),
+      royalFeature(21, 17, "secretLever", { width: 20, height: 32, solid: false, role: "crownArsenalClue", message: "Alavanca escondida: marcas douradas apontam para as Passagens Secretas." }),
+      royalNpc(18, 19, "Armeiro Doran", "Doran: Nada sai deste arsenal sem registro. Se algo sumiu, alguem apagou rastros.", "royalArmorer")
+    ];
+
+    royalObjects[ROYAL.DUNGEON] = [
+      royalBlock(0, 0, 44, 2), royalBlock(0, 0, 1, 32), royalBlock(43, 0, 1, 32),
+      royalBlock(0, 31, 19, 1), royalBlock(25, 31, 19, 1),
+      royalBlock(5, 5, 2, 18), royalBlock(12, 5, 2, 18), royalBlock(30, 5, 2, 18), royalBlock(37, 5, 2, 18),
+      royalBlock(5, 5, 9, 2), royalBlock(30, 5, 9, 2), royalBlock(5, 21, 9, 2), royalBlock(30, 21, 9, 2),
+      royalDoor(20, 29, 4, 2, ROYAL.CASTLE, "Escadaria para voltar ao patio.", { targetTileX: 15, targetTileY: 42, targetDirection: "down" }),
+      royalDoor(39, 18, 2, 2, ROYAL.SECRET, "Grade antiga: uma passagem baixa continua na escuridao.", { role: "secretDoor", targetTileX: 39, targetTileY: 24, targetDirection: "left" }),
+      royalFeature(7, 8, "cellDoor", { width: 48, height: 24, solid: true, message: "Cela de ferro: runas impedem arrombamento." }),
+      royalFeature(32, 8, "cellDoor", { width: 48, height: 24, solid: true, message: "Cela reforcada: ha marcas de magia sombria no metal." }),
+      royalFeature(8, 23, "chains", { width: 42, height: 42 }),
+      royalFeature(32, 23, "chains", { width: 42, height: 42 }),
+      royalFeature(20, 11, "dungeonRune", { width: TILE * 4, height: TILE * 3, role: "crisisStart", message: "Selo rachado: uma forca sombria acordou nas Masmorras." }),
+      royalNpc(10, 17, "Prisioneiro Velho", "Prisioneiro: As sombras falaram com alguem da corte. Cuidado com promessas doces.", "royalPrisoner"),
+      royalEnemy(19, 15, "fantasma", { missionKind: "realmCrisis", coinReward: 6 }),
+      royalEnemy(23, 17, "magoSombrio", { missionKind: "realmCrisis", coinReward: 9 }),
+      royalEnemy(26, 21, "goblin", { missionKind: "realmCrisis", coinReward: 5 })
+    ];
+
+    royalObjects[ROYAL.SECRET] = [
+      royalBlock(0, 0, 46, 1), royalBlock(0, 29, 46, 1), royalBlock(0, 0, 1, 30), royalBlock(45, 0, 1, 30),
+      royalBlock(4, 4, 30, 2), royalBlock(12, 8, 2, 17), royalBlock(20, 5, 2, 15), royalBlock(29, 10, 2, 17),
+      royalBlock(5, 14, 10, 2), royalBlock(21, 19, 10, 2), royalBlock(34, 6, 2, 15), royalBlock(34, 22, 8, 2),
+      royalDoor(5, 7, 2, 2, ROYAL.THRONE, "Tapecaria para a Sala do Trono.", { targetTileX: 6, targetTileY: 12, targetDirection: "right" }),
+      royalDoor(7, 18, 2, 2, ROYAL.LIBRARY, "Estante falsa para a Biblioteca.", { targetTileX: 6, targetTileY: 15, targetDirection: "right" }),
+      royalDoor(38, 12, 2, 2, ROYAL.ARMORY, "Painel de escudos para o Arsenal.", { targetTileX: 34, targetTileY: 12, targetDirection: "left" }),
+      royalDoor(39, 23, 2, 2, ROYAL.DUNGEON, "Grade baixa para as Masmorras.", { targetTileX: 39, targetTileY: 19, targetDirection: "left" }),
+      royalDoor(22, 3, 2, 2, ROYAL.MAGE, "Escada estreita para a Torre do Mago.", { targetTileX: 8, targetTileY: 8, targetDirection: "down" }),
+      royalDoor(40, 5, 2, 2, ROYAL.VAULT, "Porta oculta perto do Cofre.", { role: "vaultDoor", targetTileX: 4, targetTileY: 18, targetDirection: "right" }),
+      royalFeature(23, 14, "secretPedestal", { width: 44, height: 46, solid: true, role: "crownSecretClue", message: "Pedestal oculto: poeira dourada forma o desenho de uma coroa sem joia." }),
+      royalFeature(9, 24, "torch", { width: 18, height: 34 }),
+      royalFeature(32, 8, "torch", { width: 18, height: 34 }),
+      royalEnemy(25, 23, "aranha", { coinReward: 4 }),
+      royalEnemy(36, 17, "morcego", { coinReward: 4 })
+    ];
+
+    royalObjects[ROYAL.MAGE] = [
+      royalBlock(0, 0, 40, 2), royalBlock(0, 0, 1, 42), royalBlock(39, 0, 1, 42),
+      royalBlock(0, 41, 17, 1), royalBlock(23, 41, 17, 1),
+      royalBlock(0, 14, 40, 1), royalBlock(0, 27, 40, 1),
+      royalDoor(18, 39, 4, 2, ROYAL.CASTLE, "Saida da Torre do Mago.", { targetTileX: 55, targetTileY: 20, targetDirection: "down" }),
+      royalDoor(7, 7, 2, 2, ROYAL.SECRET, "Escada estreita atras de uma cortina estrelada.", { role: "secretDoor", targetTileX: 22, targetTileY: 4, targetDirection: "down" }),
+      royalFeature(18, 33, "magicCircle", { width: TILE * 4, height: TILE * 4, solid: true, message: "Circulo arcano do primeiro andar: ele vibra com magia antiga." }),
+      royalFeature(6, 31, "potionTable", { width: TILE * 4, height: TILE * 2, solid: true }),
+      royalFeature(29, 31, "bookshelfMagic", { width: TILE * 3, height: TILE * 4, solid: true }),
+      royalFeature(18, 20, "magicCircle", { width: TILE * 4, height: TILE * 4, solid: true, color: "#55e8ff", message: "Laboratorio do segundo andar: cristais medem a energia das fendas." }),
+      royalFeature(7, 18, "magicCrystal", { width: 34, height: 54, solid: true, color: "#55e8ff" }),
+      royalFeature(31, 18, "magicCrystal", { width: 34, height: 54, solid: true, color: "#b46dff" }),
+      royalFeature(18, 7, "magicCircle", { width: TILE * 4, height: TILE * 4, solid: true, color: "#b46dff", message: "Observatorio do terceiro andar: estrelas antigas respondem ao castelo." }),
+      royalFeature(5, 36, "stairs", { width: 42, height: 42, role: "towerStairUp2", message: "Escada: subir para o segundo andar." }),
+      royalFeature(34, 23, "stairs", { width: 42, height: 42, role: "towerStairUp3", message: "Escada: subir para o observatorio." }),
+      royalFeature(5, 10, "stairs", { width: 42, height: 42, role: "towerStairDown1", message: "Escada: voltar aos andares inferiores." }),
+      royalNpc(19, 24, "Mago Real Eryon", "Eryon: As fendas nao sao feridas do mundo. Sao portas antigas tentando lembrar seus nomes.", "royalMage"),
+      royalNpc(26, 34, "Aprendiz Nara", "Nara: Nunca toque em um cristal roxo sem pedir licenca para ele primeiro.", "royalApprentice")
+    ];
+
+    royalObjects[ROYAL.GARDENS] = [
+      royalBlock(0, 0, 48, 1), royalBlock(0, 33, 48, 1), royalBlock(0, 0, 1, 34), royalBlock(47, 0, 1, 34),
+      royalBlock(0, 32, 21, 1), royalBlock(27, 32, 21, 1),
+      royalDoor(22, 30, 4, 2, ROYAL.CASTLE, "Arco de volta ao patio real.", { targetTileX: 36, targetTileY: 39, targetDirection: "down" }),
+      royalFeature(22, 13, "fountain", { width: TILE * 4, height: TILE * 4, solid: true, message: "Fonte dos Jardins: a agua acalma ate magia instavel." }),
+      royalFeature(6, 6, "gardenBed", { width: TILE * 7, height: TILE * 3, color: "#ff7ab5" }),
+      royalFeature(32, 6, "gardenBed", { width: TILE * 7, height: TILE * 3, color: "#fff264" }),
+      royalFeature(6, 23, "gardenBed", { width: TILE * 7, height: TILE * 3, color: "#55e8ff" }),
+      royalFeature(32, 23, "gardenBed", { width: TILE * 7, height: TILE * 3, color: "#b46dff" }),
+      royalFeature(14, 16, "statue", { width: 32, height: 52, solid: true }),
+      royalFeature(31, 16, "statue", { width: 32, height: 52, solid: true }),
+      royalFeature(20, 25, "benchRoyal", { width: 58, height: 18, solid: true }),
+      royalFeature(27, 25, "benchRoyal", { width: 58, height: 18, solid: true }),
+      royalNpc(23, 21, "Jardineira Sol", "Sol: Aqui a realeza descansa, mas as flores escutam tudo.", "royalGardener", { patrol: [[23, 21], [28, 21], [28, 25], [23, 25]] }),
+      royalNpc(12, 11, "Nobre Visitante", "Nobre Visitante: A capital parece invencivel quando a fonte esta cantando.", "royalNoble")
+    ];
+
+    royalObjects[ROYAL.VAULT] = [
+      royalBlock(0, 0, 36, 2), royalBlock(0, 0, 1, 26), royalBlock(35, 0, 1, 26),
+      royalBlock(0, 25, 15, 1), royalBlock(21, 25, 15, 1),
+      royalDoor(16, 23, 4, 2, ROYAL.THRONE, "Porta blindada de volta a Sala do Trono.", { targetTileX: 38, targetTileY: 10, targetDirection: "left" }),
+      royalDoor(3, 18, 2, 2, ROYAL.SECRET, "Porta oculta para as Passagens Secretas.", { targetTileX: 40, targetTileY: 6, targetDirection: "left" }),
+      royalFeature(6, 6, "treasurePile", { width: TILE * 5, height: TILE * 4, solid: true }),
+      royalFeature(24, 6, "treasurePile", { width: TILE * 5, height: TILE * 4, solid: true }),
+      royalFeature(15, 9, "vaultChest", { width: TILE * 6, height: TILE * 3, solid: true, role: "royalVaultChest", message: "Bau principal do Reino: sete fechaduras cercam uma luz dourada." }),
+      royalFeature(8, 17, "relicStand", { width: 34, height: 56, solid: true, message: "Reliquia real: um fragmento de estrela pulsa dentro do vidro." }),
+      royalFeature(27, 17, "relicStand", { width: 34, height: 56, solid: true, message: "Reliquia real: uma lamina antiga repousa em silencio." }),
+      royalNpc(12, 19, "Guarda de Elite", "Guarda de Elite: O cofre so abre com permissao direta do rei.", "royalEliteGuard"),
+      royalNpc(24, 19, "Guarda de Elite", "Guarda de Elite: Cada moeda daqui tem um juramento preso nela.", "royalEliteGuard")
+    ];
+  }
+
+  function resetRoyalEnemies() {
+    buildRoyalCastleObjects();
+    for (const list of Object.values(royalObjects)) {
+      for (const obj of list) {
+        if (obj.type === "enemy") {
+          obj.alive = true;
+          obj.hp = obj.maxHp;
+          obj.phase = 1;
+          obj.x = obj.spawnX;
+          obj.y = obj.spawnY;
+          obj.knockbackX = 0;
+          obj.knockbackY = 0;
+          normalizeEnemy(obj);
+        }
+      }
+    }
+  }
+
+  function ensureRoyalGateInVillage() {
+    if (royalGateAdded || villageObjects.some((obj) => obj.type === "royalGate")) {
+      royalGateAdded = true;
+      return;
+    }
+    royalGateAdded = true;
+    villageObjects.push(
+      {
+        type: "royalGate",
+        x: 29 * TILE,
+        y: 3 * TILE - 8,
+        width: TILE * 7,
+        height: TILE * 4,
+        solid: false,
+        message: "Estrada Real: pressione E para viajar ate o Castelo Real, capital do reino."
+      },
+      sign(33, 7, "Estrada Real: a capital fica alem do caminho norte. Pressione E no portao dourado.")
+    );
+    if (currentScene === "village") {
+      objects = villageObjects;
+      colliders = objects.filter((obj) => obj.solid);
+      interactables = objects.filter((obj) => obj.message);
+    }
+  }
+
+  buildRoyalCastleObjects();
+  ensureRoyalGateInVillage();
+
+  const normalizeRuntimeStateBeforeRoyal = normalizeRuntimeState;
+  normalizeRuntimeState = function normalizeRuntimeStateRoyalCastlePatch() {
+    normalizeRuntimeStateBeforeRoyal();
+    ensureRoyalCastleState();
+  };
+
+  const setActiveSceneBeforeRoyal = setActiveScene;
+  setActiveScene = function setActiveSceneRoyalCastlePatch(scene) {
+    buildRoyalCastleObjects();
+    ensureRoyalCastleState();
+    if (isRoyalScene(scene)) {
+      currentScene = scene;
+      objects = royalObjects[scene] || royalObjects[ROYAL.CASTLE];
+      normalizeRuntimeState();
+      colliders = objects.filter((obj) => obj.solid);
+      interactables = objects.filter((obj) => obj.message);
+      closeDialog();
+      closeShop();
+      keys.clear();
+      projectiles.length = 0;
+      enemyProjectiles.length = 0;
+      hazardZones.length = 0;
+      currentAutoAimTarget = null;
+      mobileLockedTarget = null;
+      return;
+    }
+    setActiveSceneBeforeRoyal(scene);
+    ensureRoyalGateInVillage();
+  };
+
+  const getSceneWidthBeforeRoyal = getSceneWidth;
+  getSceneWidth = function getSceneWidthRoyalCastlePatch() {
+    if (isRoyalScene()) return getRoyalWidth();
+    return getSceneWidthBeforeRoyal();
+  };
+
+  const getSceneHeightBeforeRoyal = getSceneHeight;
+  getSceneHeight = function getSceneHeightRoyalCastlePatch() {
+    if (isRoyalScene()) return getRoyalHeight();
+    return getSceneHeightBeforeRoyal();
+  };
+
+  const getSceneNameBeforeRoyal = getSceneName;
+  getSceneName = function getSceneNameRoyalCastlePatch() {
+    if (isRoyalScene()) return getRoyalConfig().name;
+    return getSceneNameBeforeRoyal();
+  };
+
+  const getAreaNameBeforeRoyal = getAreaName;
+  getAreaName = function getAreaNameRoyalCastlePatch() {
+    if (isRoyalScene()) return getRoyalConfig().name;
+    return getAreaNameBeforeRoyal();
+  };
+
+  function enterRoyalScene(scene, tileX, tileY, direction = "down") {
+    const state = ensureRoyalCastleState();
+    const firstVisit = !state.discoveredRooms[scene];
+    state.entered = true;
+    state.discoveredRooms[scene] = true;
+    if (!questBook.discoveredAreas) questBook.discoveredAreas = {};
+    questBook.discoveredAreas[scene] = true;
+
+    setActiveScene(scene);
+    const config = getRoyalConfig(scene);
+    const safeTileX = Number.isFinite(tileX) ? tileX : Math.floor(config.cols / 2);
+    const safeTileY = Number.isFinite(tileY) ? tileY : config.rows - 4;
+    player.x = safeTileX * TILE + 8;
+    player.y = safeTileY * TILE + 4;
+    player.direction = direction;
+    royalExitGraceTimer = 0.35;
+    playSound("portal");
+    vibrate([18, 28, 18]);
+    showHudToast(config.name);
+    if (firstVisit) awardXp(scene === ROYAL.CASTLE ? 220 : 90, config.name);
+    updateQuestProgress();
+  }
+
+  function enterRoyalCastleFromVillage() {
+    lastVillagePosition = { x: player.x, y: player.y };
+    enterRoyalScene(ROYAL.CASTLE, 36, 42, "up");
+    showDialogMessage("Voce cruzou a Estrada Real e chegou ao Castelo Real, a capital politica e magica do reino.");
+  }
+
+  function exitRoyalCastleToVillage() {
+    setActiveScene("village");
+    player.x = 32 * TILE + 8;
+    player.y = 8 * TILE;
+    player.direction = "down";
+    playSound("portal");
+    vibrate([18, 28, 18]);
+    showHudToast("Voce voltou para a vila");
+    updateQuestProgress();
+  }
+
+  function completeRoyalMission(id, xp, message) {
+    const state = ensureRoyalCastleState();
+    if (state.missions[id] === "done") return false;
+    state.missions[id] = "done";
+    inventory.moedas += 35;
+    awardXp(xp, message);
+    playSound("mission");
+    updateHud();
+    renderInventory();
+    return true;
+  }
+
+  function getRoyalNpcMessage(npcObj) {
+    const state = ensureRoyalCastleState();
+    const missions = state.missions;
+
+    if (npcObj.role === "royalKing") {
+      if (missions.frontierThreat === "notStarted") {
+        missions.frontierThreat = "active";
+        state.vaultAccess = true;
+        state.royalSealGranted = true;
+        return "Rei Aldren: Leve meu selo. Fale com o Comandante Roderic nos Quarteis e derrote 3 ameacas fora do castelo. O Cofre reconhecera sua permissao.";
+      }
+      if (missions.frontierThreat === "active") {
+        if (!state.commanderSpoken) return "Rei Aldren: Primeiro fale com o comandante nos Quarteis. Ele conhece os movimentos da fronteira.";
+        if (state.frontierDefeated < 3) return `Rei Aldren: Ainda ha ameacas nas estradas. Progresso: ${state.frontierDefeated}/3.`;
+        completeRoyalMission("frontierThreat", 450, "Ameaca nas Fronteiras");
+        return "Rei Aldren: As fronteiras respiram melhor. O reino se lembrara do seu nome.";
+      }
+      if (missions.courtRebellion === "active" && state.traitorRevealed) {
+        completeRoyalMission("courtRebellion", 420, "Rebeliao na Corte");
+        return "Rei Aldren: Lord Varick respondera por sua traicao. Voce salvou o trono de uma guerra silenciosa.";
+      }
+      return "Rei Aldren: A capital e forte porque ainda existem herois dispostos a ouvir antes da batalha.";
+    }
+
+    if (npcObj.role === "royalQueen") {
+      if (missions.crownSecret === "notStarted") {
+        missions.crownSecret = "active";
+        return "Rainha Seraphine: Um artefato da Coroa desapareceu. Procure pistas na Biblioteca, no Arsenal e nas Passagens Secretas.";
+      }
+      if (missions.crownSecret === "active") {
+        const found = Object.values(state.crownClues).filter(Boolean).length;
+        if (found < 3) return `Rainha Seraphine: Siga os ecos da Coroa. Pistas encontradas: ${found}/3.`;
+        completeRoyalMission("crownSecret", 520, "O Segredo da Coroa");
+        return "Rainha Seraphine: A joia nao foi roubada por ganancia. Ela foi usada para abrir um caminho antigo. Excelente trabalho.";
+      }
+      return "Rainha Seraphine: A magia antiga respeita quem caminha com paciencia.";
+    }
+
+    if (npcObj.role === "royalCommander") {
+      if (missions.frontierThreat === "active") {
+        state.commanderSpoken = true;
+        return "Comandante Roderic: Entendido. Saia pela Estrada Real, derrote 3 inimigos fora do castelo e volte ao rei.";
+      }
+      return "Comandante Roderic: Treino, disciplina e terreno. Quem domina os tres volta vivo.";
+    }
+
+    if (npcObj.role === "royalAdvisor") {
+      if (missions.courtRebellion === "notStarted") {
+        missions.courtRebellion = "active";
+        return "Conselheira Elira: Ha uma rebeliao crescendo na corte. Converse com os nobres e descubra quem trai o trono.";
+      }
+      if (missions.courtRebellion === "active") {
+        return state.traitorRevealed
+          ? "Conselheira Elira: Avise o rei antes que Lord Varick fuja."
+          : "Conselheira Elira: Lord Varick sorri quando alguem fala em fronteiras fracas. Investigue-o.";
+      }
+      return "Conselheira Elira: Uma corte tranquila quase sempre esconde alguem fazendo barulho por dentro.";
+    }
+
+    if (npcObj.role === "royalTraitor") {
+      if (missions.courtRebellion === "active") {
+        state.traitorRevealed = true;
+        return "Lord Varick: O rei nao entende poder de verdade... Espere. Voce ouviu demais. Avise quem quiser.";
+      }
+      return "Lord Varick: A capital e bela, mas beleza nao segura um reino para sempre.";
+    }
+
+    if (npcObj.role === "royalMage") {
+      state.mageConsulted = true;
+      if (missions.realmCrisis === "active" && state.dungeonThreatDefeated) {
+        completeRoyalMission("realmCrisis", 560, "A Crise do Reino");
+        return "Eryon: As sombras das Masmorras foram seladas. As fendas vao se calar por enquanto.";
+      }
+      if (missions.realmCrisis === "active") {
+        return `Eryon: Derrote a forca sombria nas Masmorras e volte. Sombras dissipadas: ${state.crisisKills}/3.`;
+      }
+      return "Eryon: As fendas sao memorias do mundo. Quando uma delas abre, a magia antiga tenta voltar para casa.";
+    }
+
+    if (npcObj.role === "royalPrisoner") {
+      if (missions.realmCrisis === "notStarted") missions.realmCrisis = "active";
+      return "Prisioneiro: A coisa nas Masmorras acordou perto do selo rachado. Derrote as sombras e fale com o Mago Real.";
+    }
+
+    return npcObj.message;
+  }
+
+  function markCrownClue(key) {
+    const state = ensureRoyalCastleState();
+    if (!state.crownClues[key]) {
+      state.crownClues[key] = true;
+      awardXp(120, "Pista da Coroa");
+      playSound("crystal");
+    }
+  }
+
+  function openRoyalVaultChest() {
+    const state = ensureRoyalCastleState();
+    if (!state.vaultAccess) return "Cofre do Reino: os guardas exigem permissao do rei.";
+    if (state.vaultOpened) return "Cofre do Reino: o bau principal ja foi aberto, mas o ouro ainda brilha forte.";
+    state.vaultOpened = true;
+    inventory.moedas += 150;
+    inventory.pocoes += 2;
+    inventory.chavesRaras = Number(inventory.chavesRaras || 0) + 1;
+    inventory.fragmentos = Number(inventory.fragmentos || 0) + 2;
+    if (!Array.isArray(inventory.itensBoss)) inventory.itensBoss = [];
+    if (!inventory.itensBoss.includes("Selo do Reino")) inventory.itensBoss.push("Selo do Reino");
+    grantRoyalCastleSword();
+    awardXp(650, "Cofre do Reino");
+    playSound("chest");
+    renderInventory();
+    updateHud();
+    return "Cofre aberto! Voce recebeu 150 moedas, 2 pocoes, 1 chave rara, 2 fragmentos e o Selo do Reino.";
+  }
+
+  function grantRoyalCastleSword() {
+    const key = "royalCastleSword";
+    if (!weapons[key]) return false;
+    if (!questBook.legendarySwords || typeof questBook.legendarySwords !== "object") {
+      questBook.legendarySwords = {};
+    }
+    const state = questBook.legendarySwords;
+    if (!state.obtained || typeof state.obtained !== "object") state.obtained = {};
+    if (state.obtained[key]) return false;
+    state.obtained[key] = true;
+    if (!Array.isArray(inventory.legendarySwordOrder)) inventory.legendarySwordOrder = [];
+    if (!Array.isArray(inventory.rareWeapons)) inventory.rareWeapons = [];
+    if (!Array.isArray(player.unlockedWeapons)) player.unlockedWeapons = [...weaponOrder];
+    if (!inventory.legendarySwordOrder.includes(key)) inventory.legendarySwordOrder.push(key);
+    if (!inventory.rareWeapons.includes(key)) inventory.rareWeapons.push(key);
+    if (!player.unlockedWeapons.includes(key)) player.unlockedWeapons.push(key);
+    spawnFloatingText("Espada Real do Castelo", player.x + 8, player.y - 34, "#fff4ac");
+    showHudToast("Nova espada: Espada Real do Castelo");
+    return true;
+  }
+
+  const getQuestMessageBeforeRoyal = getQuestMessage;
+  getQuestMessage = function getQuestMessageRoyalCastlePatch(target) {
+    ensureRoyalCastleState();
+
+    if (target?.type === "royalGate") {
+      enterRoyalCastleFromVillage();
+      return "";
+    }
+
+    if (target?.type === "royalDoor") {
+      if (target.targetScene === "village") {
+        exitRoyalCastleToVillage();
+        return "";
+      }
+      if (target.role === "vaultDoor" && !ensureRoyalCastleState().vaultAccess) {
+        return "Guardas de Elite: o Cofre do Reino so abre com permissao do rei.";
+      }
+      if (target.role === "secretDoor") {
+        const state = ensureRoyalCastleState();
+        state.foundSecretPassage = true;
+        if (target.targetScene === ROYAL.SECRET || currentScene === ROYAL.SECRET) markCrownClue("secret");
+      }
+      enterRoyalScene(target.targetScene, target.targetTileX, target.targetTileY, target.targetDirection);
+      return "";
+    }
+
+    if (target?.type === "royalBook") {
+      const state = ensureRoyalCastleState();
+      state.readLore[target.stateKey] = true;
+      if (target.stateKey === "crownLibrary") markCrownClue("library");
+      return target.message;
+    }
+
+    if (target?.type === "royalFeature") {
+      if (target.role === "royalVaultChest") return openRoyalVaultChest();
+      if (target.role === "crownArsenalClue") {
+        markCrownClue("arsenal");
+        return target.message;
+      }
+      if (target.role === "crownSecretClue") {
+        markCrownClue("secret");
+        return target.message;
+      }
+      if (target.role === "crisisStart") {
+        const state = ensureRoyalCastleState();
+        if (state.missions.realmCrisis === "notStarted") state.missions.realmCrisis = "active";
+        return target.message + " Derrote as sombras e fale com o Mago Real.";
+      }
+      if (target.role === "towerStairUp2") {
+        player.x = 34 * TILE;
+        player.y = 24 * TILE;
+        player.direction = "up";
+        return "Voce subiu para o segundo andar da Torre do Mago.";
+      }
+      if (target.role === "towerStairUp3") {
+        player.x = 6 * TILE;
+        player.y = 11 * TILE;
+        player.direction = "right";
+        return "Voce subiu para o terceiro andar da Torre do Mago.";
+      }
+      if (target.role === "towerStairDown1") {
+        player.x = 6 * TILE;
+        player.y = 36 * TILE;
+        player.direction = "down";
+        return "Voce desceu pelos degraus em espiral da torre.";
+      }
+      return target.message || "Detalhe real: o acabamento mostra riqueza, historia e magia antiga.";
+    }
+
+    if (target?.type === "npc" && target.royalNpc) {
+      return getRoyalNpcMessage(target);
+    }
+
+    return getQuestMessageBeforeRoyal(target);
+  };
+
+  const defeatEnemyBeforeRoyal = defeatEnemy;
+  defeatEnemy = function defeatEnemyRoyalCastlePatch(obj) {
+    const wasAlive = Boolean(obj?.alive);
+    const wasRoyalEnemy = Boolean(obj?.royalEnemy);
+    const defeatedScene = currentScene;
+    defeatEnemyBeforeRoyal(obj);
+    if (!wasAlive) return;
+
+    const state = ensureRoyalCastleState();
+    if (defeatedScene === "village" && !wasRoyalEnemy && state.missions.frontierThreat === "active" && state.commanderSpoken && !obj.boss) {
+      state.frontierDefeated = Math.min(3, Number(state.frontierDefeated || 0) + 1);
+      showHudToast(`Ameacas nas Fronteiras ${state.frontierDefeated}/3`);
+      updateQuestProgress();
+    }
+
+    if (wasRoyalEnemy && obj.royalMissionKind === "realmCrisis") {
+      if (state.missions.realmCrisis === "notStarted") state.missions.realmCrisis = "active";
+      state.crisisKills = Math.min(3, Number(state.crisisKills || 0) + 1);
+      if (state.crisisKills >= 3) state.dungeonThreatDefeated = true;
+      showHudToast(`Masmorras ${state.crisisKills}/3`);
+      updateQuestProgress();
+    }
+  };
+
+  function updateRoyalPatrols(delta) {
+    if (!isRoyalScene() || dialogOpen || shopOpen || pauseOpen || inventoryOpen) return;
+    for (const obj of objects) {
+      if (obj.type !== "npc" || !obj.patrol?.length) continue;
+      const target = obj.patrol[obj.patrolIndex % obj.patrol.length];
+      const dx = target.x - obj.x;
+      const dy = target.y - obj.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 4) {
+        obj.patrolIndex = (obj.patrolIndex + 1) % obj.patrol.length;
+        continue;
+      }
+      const stepX = (dx / (dist || 1)) * obj.speed * 0.55 * delta;
+      const stepY = (dy / (dist || 1)) * obj.speed * 0.55 * delta;
+      if (Math.abs(dx) > Math.abs(dy)) obj.direction = dx > 0 ? "right" : "left";
+      else obj.direction = dy > 0 ? "down" : "up";
+      if (canEntityMoveTo(obj, obj.x + stepX, obj.y)) obj.x += stepX;
+      if (canEntityMoveTo(obj, obj.x, obj.y + stepY)) obj.y += stepY;
+    }
+  }
+
+  function updateRoyalEnemies(delta) {
+    if (!isRoyalScene() || !gameStarted || gameOver || pauseOpen || inventoryOpen || shopOpen) return;
+    damageCooldown = Math.max(0, damageCooldown - delta);
+    const playerRect = getPlayerRect();
+    const px = player.x + player.width / 2;
+    const py = player.y + player.height / 2;
+
+    for (const obj of objects) {
+      if (obj.type !== "enemy" || !obj.royalEnemy || !obj.alive) continue;
+      normalizeEnemy(obj);
+      obj.invulnerableTimer = Math.max(0, Number(obj.invulnerableTimer || 0) - delta);
+      obj.attackCooldown = Math.max(0, Number(obj.attackCooldown || 0) - delta);
+      obj.attackTimer = Math.max(0, Number(obj.attackTimer || 0) - delta);
+
+      if (Math.abs(obj.knockbackX || 0) + Math.abs(obj.knockbackY || 0) > 1) {
+        const nextX = obj.x + obj.knockbackX * delta;
+        const nextY = obj.y + obj.knockbackY * delta;
+        if (canEntityMoveTo(obj, nextX, obj.y)) obj.x = nextX;
+        if (canEntityMoveTo(obj, obj.x, nextY)) obj.y = nextY;
+        obj.knockbackX *= 0.84;
+        obj.knockbackY *= 0.84;
+        continue;
+      }
+
+      const ex = obj.x + obj.width / 2;
+      const ey = obj.y + obj.height / 2;
+      const dist = Math.hypot(px - ex, py - ey);
+      const spawnDist = Math.hypot(obj.x - obj.spawnX, obj.y - obj.spawnY);
+      const isRanged = Boolean(obj.projectileType);
+
+      if (dist < (obj.aggroRange || 260)) {
+        obj.state = "chase";
+        if (isRanged && dist < (obj.attackRange || 210) && obj.attackCooldown <= 0) {
+          fireEnemyProjectile(obj, px, py);
+          obj.attackCooldown = obj.attackDelay || 1.2;
+        }
+        if (!isRanged || dist > (obj.attackRange || 70) * 0.55) {
+          moveEnemyToward(obj, px - ex, py - ey, delta, 0.92);
+        }
+      } else if (spawnDist > TILE * 2.4) {
+        obj.state = "return";
+        moveEnemyToward(obj, obj.spawnX - obj.x, obj.spawnY - obj.y, delta, 0.72);
+      } else {
+        obj.state = "idle";
+        updateEnemyWander(obj, delta);
+      }
+
+      if (obj.kind === "fantasma" && dist < 180 && Math.random() < delta * 0.16) {
+        spawnHazardZone("slime", ex, ey, 24, 1.5, 1);
+      }
+      if (rectsOverlap(playerRect, obj) && damageCooldown <= 0) {
+        takeDamage(obj.damage || 1, ex, ey);
+        damageCooldown = obj.attackDelay || 1;
+      }
+    }
+  }
+
+  const updateBeforeRoyal = update;
+  update = function updateRoyalCastlePatch(delta) {
+    updateBeforeRoyal(delta);
+    if (!isRoyalScene()) return;
+    royalExitGraceTimer = Math.max(0, royalExitGraceTimer - delta);
+    updateRoyalPatrols(delta);
+    updateRoyalEnemies(delta);
+    updateQuestProgress();
+    updateInteractionHint();
+  };
+
+  const getNearestEnemyToPlayerBeforeRoyal = getNearestEnemyToPlayer;
+  getNearestEnemyToPlayer = function getNearestEnemyToPlayerRoyalCastlePatch(maxDistance = 320) {
+    if (!isRoyalScene()) return getNearestEnemyToPlayerBeforeRoyal(maxDistance);
+    let nearest = null;
+    let nearestDistance = maxDistance;
+    const cx = player.x + player.width / 2;
+    const cy = player.y + player.height / 2;
+    for (const obj of objects || []) {
+      if (obj.type !== "enemy" || !obj.alive) continue;
+      const dist = Math.hypot(obj.x + obj.width / 2 - cx, obj.y + obj.height / 2 - cy);
+      if (dist < nearestDistance) {
+        nearest = obj;
+        nearestDistance = dist;
+      }
+    }
+    return nearest;
+  };
+
+  const updateInteractionHintBeforeRoyal = updateInteractionHint;
+  updateInteractionHint = function updateInteractionHintRoyalCastlePatch() {
+    updateInteractionHintBeforeRoyal();
+    try {
+      const target = findInteraction();
+      if (!target || dialogOpen || shopOpen) return;
+      if (target.type === "royalGate") {
+        interactionHint.textContent = "Pressione E para viajar ao Castelo Real";
+        if (touchContextLabel) touchContextLabel.textContent = "Castelo";
+      } else if (target.type === "royalDoor") {
+        interactionHint.textContent = target.targetScene === "village" ? "Pressione E para voltar a vila" : "Pressione E para entrar";
+        if (touchContextLabel) touchContextLabel.textContent = target.targetScene === "village" ? "Sair" : "Entrar";
+      } else if (target.type === "royalBook") {
+        interactionHint.textContent = "Pressione E para ler";
+        if (touchContextLabel) touchContextLabel.textContent = "Ler";
+      } else if (target.type === "royalFeature") {
+        interactionHint.textContent = target.role === "royalVaultChest" ? "Pressione E para abrir o cofre" : "Pressione E para examinar";
+        if (touchContextLabel) touchContextLabel.textContent = target.role === "royalVaultChest" ? "Abrir" : "Olhar";
+      } else if (target.type === "npc" && target.royalNpc) {
+        interactionHint.textContent = "Pressione E para conversar";
+        if (touchContextLabel) touchContextLabel.textContent = "Falar";
+      }
+    } catch (error) {}
+  };
+
+  const getCompactMissionTextBeforeRoyal = getCompactMissionText;
+  getCompactMissionText = function getCompactMissionTextRoyalCastlePatch() {
+    const state = ensureRoyalCastleState();
+    const missions = state.missions;
+    if (isRoyalScene()) {
+      if (missions.realmCrisis === "active") return state.dungeonThreatDefeated ? "Castelo: fale com o Mago" : `Masmorras: ${state.crisisKills}/3`;
+      if (missions.crownSecret === "active") return `Coroa: ${Object.values(state.crownClues).filter(Boolean).length}/3 pistas`;
+      if (missions.courtRebellion === "active") return state.traitorRevealed ? "Corte: avise o rei" : "Corte: investigue nobres";
+      if (missions.frontierThreat === "active") return state.commanderSpoken ? `Fronteiras: ${state.frontierDefeated}/3` : "Fronteiras: fale com comandante";
+      return "Castelo: fale com rei e rainha";
+    }
+    if (missions.frontierThreat === "active" && state.commanderSpoken && currentScene === "village") {
+      return `Fronteiras: ${state.frontierDefeated}/3`;
+    }
+    return getCompactMissionTextBeforeRoyal();
+  };
+
+  const renderMissionsPanelBeforeRoyal = renderMissionsPanel;
+  renderMissionsPanel = function renderMissionsPanelRoyalCastlePatch() {
+    renderMissionsPanelBeforeRoyal();
+    const state = ensureRoyalCastleState();
+    if (!missionsList) return;
+    const clues = Object.values(state.crownClues).filter(Boolean).length;
+    const rows = [
+      `<li><span>Ameaca nas Fronteiras</span><strong>${state.missions.frontierThreat === "done" ? "ok" : state.commanderSpoken ? state.frontierDefeated + "/3" : state.missions.frontierThreat === "active" ? "comandante" : "rei"}</strong></li>`,
+      `<li><span>O Segredo da Coroa</span><strong>${state.missions.crownSecret === "done" ? "ok" : clues + "/3 pistas"}</strong></li>`,
+      `<li><span>Rebeliao na Corte</span><strong>${state.missions.courtRebellion === "done" ? "ok" : state.traitorRevealed ? "avisar rei" : state.missions.courtRebellion === "active" ? "investigar" : "Elira"}</strong></li>`,
+      `<li><span>A Crise do Reino</span><strong>${state.missions.realmCrisis === "done" ? "ok" : state.dungeonThreatDefeated ? "mago" : state.crisisKills + "/3"}</strong></li>`
+    ];
+    missionsList.innerHTML += rows.join("");
+  };
+
+  const loadGameBeforeRoyal = loadGame;
+  loadGame = function loadGameRoyalCastlePatch() {
+    let savedScene = "";
+    let savedPlayer = null;
+    try {
+      const raw = readSaveRaw();
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        savedScene = parsed.scene || "";
+        savedPlayer = parsed.player || null;
+      }
+    } catch (error) {}
+    const result = loadGameBeforeRoyal();
+    ensureRoyalGateInVillage();
+    ensureRoyalCastleState();
+    if (result && isRoyalScene(savedScene)) {
+      setActiveScene(savedScene);
+      player.x = Number.isFinite(savedPlayer?.x) ? savedPlayer.x : Math.floor(getRoyalConfig(savedScene).cols / 2) * TILE;
+      player.y = Number.isFinite(savedPlayer?.y) ? savedPlayer.y : (getRoyalConfig(savedScene).rows - 4) * TILE;
+      player.direction = savedPlayer?.direction || "down";
+      updateHud();
+      updateQuestProgress();
+    }
+    return result;
+  };
+
+  const resetProgressForNewGameBeforeRoyal = resetProgressForNewGame;
+  resetProgressForNewGame = function resetProgressForNewGameRoyalCastlePatch(name) {
+    resetProgressForNewGameBeforeRoyal(name);
+    resetRoyalCastleState();
+    ensureRoyalGateInVillage();
+    updateQuestProgress();
+  };
+
+  const drawMapBeforeRoyal = drawMap;
+  drawMap = function drawMapRoyalCastlePatch() {
+    if (!isRoyalScene()) {
+      drawMapBeforeRoyal();
+      return;
+    }
+    drawRoyalMap();
+  };
+
+  function drawRoyalMap() {
+    drawRoyalSceneBackdropFill();
+    if (currentScene === ROYAL.CASTLE) drawRoyalExteriorMap();
+    else if (currentScene === ROYAL.GARDENS) drawRoyalGardensMap();
+    else if (currentScene === ROYAL.SECRET) drawRoyalSecretMap();
+    else drawRoyalInteriorMap();
+    drawRoyalAmbientParticles();
+  }
+
+  function drawRoyalSceneBackdropFill() {
+    if (currentScene === ROYAL.CASTLE || currentScene === ROYAL.GARDENS) ctx.fillStyle = "#5fa760";
+    else if (currentScene === ROYAL.DUNGEON || currentScene === ROYAL.SECRET) ctx.fillStyle = "#252632";
+    else if (currentScene === ROYAL.MAGE) ctx.fillStyle = "#453d68";
+    else if (currentScene === ROYAL.VAULT) ctx.fillStyle = "#76644f";
+    else ctx.fillStyle = "#aaa191";
+    ctx.fillRect(camera.x, camera.y, canvas.width, canvas.height);
+  }
+
+  function forVisibleRoyalTiles(drawTile) {
+    const config = getRoyalConfig();
+    const startCol = Math.max(0, Math.floor(camera.x / TILE) - 1);
+    const endCol = Math.min(config.cols - 1, Math.ceil((camera.x + canvas.width) / TILE) + 1);
+    const startRow = Math.max(0, Math.floor(camera.y / TILE) - 1);
+    const endRow = Math.min(config.rows - 1, Math.ceil((camera.y + canvas.height) / TILE) + 1);
+    for (let ty = startRow; ty <= endRow; ty++) {
+      for (let tx = startCol; tx <= endCol; tx++) {
+        drawTile(tx * TILE, ty * TILE, tx, ty);
+      }
+    }
+  }
+
+  function drawRoyalExteriorMap() {
+    forVisibleRoyalTiles((x, y, tx, ty) => {
+      const insideWalls = tx >= 8 && tx <= 63 && ty >= 6 && ty <= 45;
+      const mainRoad = (tx >= 34 && tx <= 38 && ty >= 21 && ty <= 45) || (ty >= 31 && ty <= 34 && tx >= 12 && tx <= 60);
+      if (!insideWalls) drawRoyalGrassTile(x, y, tx, ty);
+      else if (mainRoad) drawRoyalStoneTile(x, y, tx, ty, "#b9b7a7", "#9fa0a0");
+      else drawRoyalCourtyardTile(x, y, tx, ty);
+    });
+
+    drawRoyalWallRect(8 * TILE, 5 * TILE, 56 * TILE, 2 * TILE);
+    drawRoyalWallRect(8 * TILE, 44 * TILE, 24 * TILE, 2 * TILE);
+    drawRoyalWallRect(40 * TILE, 44 * TILE, 24 * TILE, 2 * TILE);
+    drawRoyalWallRect(8 * TILE, 7 * TILE, 2 * TILE, 37 * TILE);
+    drawRoyalWallRect(62 * TILE, 7 * TILE, 2 * TILE, 37 * TILE);
+    drawRoyalTower(7, 4, 4, 5);
+    drawRoyalTower(61, 4, 4, 5);
+    drawRoyalTower(7, 42, 4, 5);
+    drawRoyalTower(61, 42, 4, 5);
+    drawRoyalGatehouse(31 * TILE, 42 * TILE);
+    drawRoyalKeep(19 * TILE, 6 * TILE, 34 * TILE, 16 * TILE);
+    drawRoyalSideBuilding(10 * TILE, 24 * TILE, 12 * TILE, 10 * TILE, "Quarteis");
+    drawRoyalSideBuilding(50 * TILE, 24 * TILE, 12 * TILE, 10 * TILE, "Arsenal");
+    drawRoyalSideBuilding(9 * TILE, 36 * TILE, 12 * TILE, 7 * TILE, "Masmorras");
+    drawRoyalMageTowerBuilding(51 * TILE, 7 * TILE);
+    drawRoyalPathTrim();
+  }
+
+  function drawRoyalInteriorMap() {
+    const config = getRoyalConfig();
+    forVisibleRoyalTiles((x, y, tx, ty) => {
+      if (ty < 2 || tx === 0 || tx === config.cols - 1 || ty === config.rows - 1) {
+        drawRoyalWallTile(x, y, tx, ty);
+      } else if (currentScene === ROYAL.DUNGEON) {
+        drawDungeonFloorTile(x, y, tx, ty);
+      } else if (currentScene === ROYAL.VAULT) {
+        drawVaultFloorTile(x, y, tx, ty);
+      } else if (currentScene === ROYAL.MAGE) {
+        drawMageFloorTile(x, y, tx, ty);
+      } else {
+        drawRoyalStoneTile(x, y, tx, ty, "#c1b9a8", "#aaa191");
+      }
+    });
+
+    if (currentScene === ROYAL.THRONE) drawThroneRoomBackdrop();
+    if (currentScene === ROYAL.BARRACKS) drawBarracksBackdrop();
+    if (currentScene === ROYAL.LIBRARY) drawLibraryBackdrop();
+    if (currentScene === ROYAL.ARMORY) drawArmoryBackdrop();
+    if (currentScene === ROYAL.DUNGEON) drawDungeonBackdrop();
+    if (currentScene === ROYAL.MAGE) drawMageTowerBackdrop();
+    if (currentScene === ROYAL.VAULT) drawVaultBackdrop();
+  }
+
+  function drawRoyalGardensMap() {
+    forVisibleRoyalTiles((x, y, tx, ty) => {
+      const path = (tx >= 22 && tx <= 25) || (ty >= 14 && ty <= 17 && tx >= 7 && tx <= 40) || (ty >= 25 && ty <= 27 && tx >= 14 && tx <= 34);
+      if (tx === 0 || ty === 0 || tx === 47 || ty === 33) drawRoyalWallTile(x, y, tx, ty);
+      else if (path) drawRoyalStoneTile(x, y, tx, ty, "#d9cfb2", "#b9ab8e");
+      else drawRoyalGrassTile(x, y, tx, ty);
+    });
+    drawRoyalGardenArch(20 * TILE, 29 * TILE);
+  }
+
+  function drawRoyalSecretMap() {
+    forVisibleRoyalTiles((x, y, tx, ty) => {
+      drawRoyalStoneTile(x, y, tx, ty, "#3f3b42", "#2e2b34");
+      if ((tx * 5 + ty * 9) % 11 === 0) {
+        ctx.fillStyle = "rgba(255, 180, 95, 0.08)";
+        ctx.fillRect(x + 8, y + 12, 16, 4);
+      }
+    });
+    for (const obj of royalObjects[ROYAL.SECRET]) {
+      if (obj.type !== "block" || !isOnCamera(obj, 64)) continue;
+      drawSecretWallBlock(obj.x, obj.y, obj.width, obj.height);
+    }
+  }
+
+  function drawRoyalGrassTile(x, y, tx, ty) {
+    ctx.fillStyle = (tx + ty) % 2 ? "#5fa760" : "#68b76a";
+    ctx.fillRect(x, y, TILE, TILE);
+    if ((tx * 7 + ty * 3) % 5 === 0) {
+      ctx.fillStyle = "#2f7049";
+      ctx.fillRect(x + 7, y + 18, 3, 9);
+      ctx.fillRect(x + 11, y + 22, 3, 4);
+    }
+    if ((tx * 11 + ty * 5) % 13 === 0) {
+      ctx.fillStyle = "#ffb7d1";
+      ctx.fillRect(x + 22, y + 8, 4, 4);
+      ctx.fillStyle = "#fff264";
+      ctx.fillRect(x + 18, y + 13, 3, 3);
+    }
+  }
+
+  function drawRoyalCourtyardTile(x, y, tx, ty) {
+    drawRoyalStoneTile(x, y, tx, ty, "#aeb2ad", "#989c99");
+    if ((tx * 3 + ty * 7) % 9 === 0) {
+      ctx.fillStyle = "rgba(255, 244, 172, 0.18)";
+      ctx.fillRect(x + 7, y + 8, 12, 3);
+    }
+  }
+
+  function drawRoyalStoneTile(x, y, tx, ty, a, b) {
+    ctx.fillStyle = (tx + ty) % 2 ? a : b;
+    ctx.fillRect(x, y, TILE, TILE);
+    ctx.strokeStyle = "rgba(31, 39, 70, 0.22)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
+    if ((tx * 13 + ty * 7) % 6 === 0) {
+      ctx.fillStyle = "rgba(255,255,255,0.15)";
+      ctx.fillRect(x + 5, y + 6, 10, 2);
+    }
+  }
+
+  function drawRoyalWallTile(x, y, tx, ty) {
+    ctx.fillStyle = (tx + ty) % 2 ? "#687084" : "#596176";
+    ctx.fillRect(x, y, TILE, TILE);
+    ctx.fillStyle = "#2d344e";
+    ctx.fillRect(x, y + TILE - 5, TILE, 5);
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.fillRect(x + 4, y + 6, 14, 3);
+  }
+
+  function drawDungeonFloorTile(x, y, tx, ty) {
+    drawRoyalStoneTile(x, y, tx, ty, "#3a3840", "#302e36");
+    if ((tx * 11 + ty * 13) % 17 === 0) {
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
+      ctx.fillRect(x + 11, y + 16, 13, 5);
+    }
+  }
+
+  function drawVaultFloorTile(x, y, tx, ty) {
+    drawRoyalStoneTile(x, y, tx, ty, "#89755e", "#76644f");
+    if ((tx + ty) % 7 === 0) {
+      ctx.fillStyle = "rgba(255, 242, 100, 0.18)";
+      ctx.fillRect(x + 9, y + 9, 13, 3);
+    }
+  }
+
+  function drawMageFloorTile(x, y, tx, ty) {
+    drawRoyalStoneTile(x, y, tx, ty, "#514879", "#453d68");
+    if ((tx * 5 + ty * 3) % 8 === 0) {
+      ctx.fillStyle = "rgba(85,232,255,0.16)";
+      ctx.fillRect(x + 12, y + 12, 8, 8);
+    }
+  }
+
+  function drawRoyalWallRect(x, y, w, h) {
+    drawSoftShadow(x + 6, y + h - 4, w - 12, 12, 0.28);
+    ctx.fillStyle = "#384157";
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = "#6d768b";
+    ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+    ctx.fillStyle = "#2d344e";
+    for (let bx = x; bx < x + w; bx += 32) ctx.fillRect(bx + 4, y - 6, 18, 12);
+    ctx.fillStyle = "rgba(255,255,255,0.14)";
+    for (let bx = x + 10; bx < x + w - 12; bx += 48) ctx.fillRect(bx, y + 12, 24, 4);
+  }
+
+  function drawRoyalTower(tileX, tileY, widthTiles, heightTiles) {
+    const x = tileX * TILE;
+    const y = tileY * TILE;
+    const w = widthTiles * TILE;
+    const h = heightTiles * TILE;
+    drawSoftShadow(x + 8, y + h - 6, w - 16, 16, 0.35);
+    ctx.fillStyle = "#323a52";
+    ctx.fillRect(x + 10, y + 24, w - 20, h - 18);
+    ctx.fillStyle = "#687084";
+    ctx.fillRect(x + 16, y + 30, w - 32, h - 30);
+    ctx.fillStyle = "#173d72";
+    ctx.beginPath();
+    ctx.moveTo(x + w / 2, y);
+    ctx.lineTo(x + w - 4, y + 30);
+    ctx.lineTo(x + 4, y + 30);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + w / 2 - 3, y + 7, 6, 22);
+    ctx.fillStyle = "#55e8ff";
+    ctx.fillRect(x + w / 2 - 7, y + 68, 14, 24);
+  }
+
+  function drawRoyalGatehouse(x, y) {
+    drawSoftShadow(x + 8, y + 80, 120, 16, 0.34);
+    ctx.fillStyle = "#30374e";
+    ctx.fillRect(x, y - 36, 136, 92);
+    ctx.fillStyle = "#6f788e";
+    ctx.fillRect(x + 8, y - 28, 120, 80);
+    ctx.fillStyle = "#1f2746";
+    ctx.fillRect(x + 42, y + 12, 52, 44);
+    ctx.fillStyle = "#2b1a16";
+    ctx.fillRect(x + 48, y + 20, 40, 36);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + 16, y - 18, 12, 48);
+    ctx.fillRect(x + 108, y - 18, 12, 48);
+    ctx.fillStyle = "#1f65d6";
+    ctx.fillRect(x + 18, y - 10, 18, 32);
+    ctx.fillRect(x + 100, y - 10, 18, 32);
+  }
+
+  function drawRoyalKeep(x, y, w, h) {
+    drawSoftShadow(x + 14, y + h - 8, w - 28, 20, 0.32);
+    ctx.fillStyle = "#26304a";
+    ctx.fillRect(x, y + 42, w, h - 42);
+    ctx.fillStyle = "#7d8799";
+    ctx.fillRect(x + 10, y + 50, w - 20, h - 58);
+    ctx.fillStyle = "#1c4f8f";
+    ctx.fillRect(x + 24, y + 25, w - 48, 32);
+    ctx.fillStyle = "#14345f";
+    ctx.fillRect(x + 42, y + 12, w - 84, 18);
+    for (let i = 0; i < 6; i++) {
+      const tx = x + 24 + i * 156;
+      drawRoyalSpire(tx, y + 2);
+    }
+    ctx.fillStyle = "#1f2746";
+    ctx.fillRect(x + w / 2 - 40, y + h - 58, 80, 58);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + w / 2 - 33, y + h - 48, 66, 8);
+    ctx.fillStyle = "#55e8ff";
+    for (let wx = x + 70; wx < x + w - 70; wx += 98) {
+      ctx.fillRect(wx, y + 86, 18, 30);
+      ctx.fillStyle = "rgba(85,232,255,0.35)";
+      ctx.fillRect(wx - 4, y + 82, 26, 38);
+      ctx.fillStyle = "#55e8ff";
+    }
+  }
+
+  function drawRoyalSpire(x, y) {
+    ctx.fillStyle = "#1f2746";
+    ctx.fillRect(x + 12, y + 34, 44, 52);
+    ctx.fillStyle = "#1b4f91";
+    ctx.beginPath();
+    ctx.moveTo(x + 34, y);
+    ctx.lineTo(x + 62, y + 38);
+    ctx.lineTo(x + 6, y + 38);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + 31, y + 8, 6, 28);
+  }
+
+  function drawRoyalSideBuilding(x, y, w, h, label) {
+    drawSoftShadow(x + 8, y + h - 4, w - 16, 16, 0.28);
+    ctx.fillStyle = "#31394f";
+    ctx.fillRect(x, y + 32, w, h - 30);
+    ctx.fillStyle = "#6f788e";
+    ctx.fillRect(x + 8, y + 40, w - 16, h - 44);
+    ctx.fillStyle = "#173d72";
+    ctx.fillRect(x + 12, y + 16, w - 24, 32);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + w / 2 - 22, y + h - 46, 44, 8);
+    ctx.fillStyle = "#1f2746";
+    ctx.fillRect(x + w / 2 - 18, y + h - 36, 36, 36);
+    if (label) {
+      ctx.fillStyle = "rgba(255,244,172,0.18)";
+      ctx.fillRect(x + 22, y + 54, w - 44, 6);
+    }
+  }
+
+  function drawRoyalMageTowerBuilding(x, y) {
+    drawSoftShadow(x + 10, y + 360, 240, 18, 0.35);
+    ctx.fillStyle = "#252a45";
+    ctx.fillRect(x + 32, y + 80, 196, 284);
+    ctx.fillStyle = "#585f82";
+    ctx.fillRect(x + 44, y + 92, 172, 260);
+    ctx.fillStyle = "#2b1d5f";
+    ctx.beginPath();
+    ctx.moveTo(x + 130, y);
+    ctx.lineTo(x + 240, y + 110);
+    ctx.lineTo(x + 20, y + 110);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#b46dff";
+    ctx.fillRect(x + 122, y + 28, 16, 72);
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = i % 2 ? "#55e8ff" : "#b46dff";
+      ctx.fillRect(x + 82 + i * 46, y + 146 + i * 48, 22, 34);
+    }
+  }
+
+  function drawRoyalPathTrim() {
+    ctx.strokeStyle = "rgba(240,191,101,0.38)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(34 * TILE + 4, 22 * TILE, 4 * TILE - 8, 22 * TILE);
+    ctx.strokeRect(12 * TILE, 31 * TILE + 4, 48 * TILE, 4 * TILE - 8);
+  }
+
+  function drawThroneRoomBackdrop() {
+    ctx.fillStyle = "#b0263f";
+    ctx.fillRect(20 * TILE, 8 * TILE, 4 * TILE, 23 * TILE);
+    ctx.fillStyle = "rgba(255, 244, 172, 0.25)";
+    for (let y = 9 * TILE; y < 30 * TILE; y += 64) ctx.fillRect(20 * TILE + 10, y, 4 * TILE - 20, 8);
+    ctx.fillStyle = "#7d8799";
+    ctx.fillRect(15 * TILE, 4 * TILE, 14 * TILE, 3 * TILE);
+    ctx.fillStyle = "rgba(85,232,255,0.22)";
+    for (let x = 6 * TILE; x < 39 * TILE; x += 7 * TILE) {
+      ctx.fillRect(x, 2 * TILE + 8, 34, 54);
+    }
+  }
+
+  function drawBarracksBackdrop() {
+    ctx.fillStyle = "rgba(31,39,70,0.35)";
+    ctx.fillRect(2 * TILE, 13 * TILE, 36 * TILE, 2 * TILE);
+    ctx.fillStyle = "#7b3f2e";
+    ctx.fillRect(16 * TILE, 3 * TILE, 8 * TILE, 2 * TILE);
+  }
+
+  function drawLibraryBackdrop() {
+    ctx.fillStyle = "rgba(31,39,70,0.24)";
+    ctx.fillRect(2 * TILE, 3 * TILE, 4 * TILE, 10 * TILE);
+    ctx.fillRect(36 * TILE, 3 * TILE, 4 * TILE, 10 * TILE);
+    ctx.fillRect(8 * TILE, 3 * TILE, 8 * TILE, 2 * TILE);
+    ctx.fillRect(25 * TILE, 3 * TILE, 8 * TILE, 2 * TILE);
+  }
+
+  function drawArmoryBackdrop() {
+    ctx.fillStyle = "rgba(240,191,101,0.12)";
+    ctx.fillRect(2 * TILE, 3 * TILE, 34 * TILE, 4 * TILE);
+    ctx.fillStyle = "rgba(255,79,98,0.08)";
+    ctx.fillRect(26 * TILE, 12 * TILE, 9 * TILE, 8 * TILE);
+  }
+
+  function drawDungeonBackdrop() {
+    ctx.fillStyle = "rgba(0,0,0,0.32)";
+    ctx.fillRect(0, 0, getRoyalWidth(), getRoyalHeight());
+    ctx.fillStyle = "rgba(255,180,95,0.12)";
+    ctx.fillRect(19 * TILE, 10 * TILE, 6 * TILE, 8 * TILE);
+  }
+
+  function drawMageTowerBackdrop() {
+    ctx.strokeStyle = "rgba(85,232,255,0.20)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(2 * TILE, 14 * TILE, 36 * TILE, 13 * TILE);
+    ctx.strokeRect(2 * TILE, 27 * TILE, 36 * TILE, 14 * TILE);
+    ctx.fillStyle = "rgba(180,109,255,0.14)";
+    ctx.fillRect(0, 0, getRoyalWidth(), getRoyalHeight());
+  }
+
+  function drawVaultBackdrop() {
+    ctx.fillStyle = "rgba(255,210,92,0.16)";
+    ctx.fillRect(2 * TILE, 4 * TILE, 32 * TILE, 18 * TILE);
+    ctx.strokeStyle = "rgba(240,191,101,0.5)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(4 * TILE, 5 * TILE, 28 * TILE, 17 * TILE);
+  }
+
+  function drawRoyalGardenArch(x, y) {
+    ctx.fillStyle = "#43506a";
+    ctx.fillRect(x, y, 8 * TILE, 40);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + 18, y + 8, 8 * TILE - 36, 8);
+    ctx.fillStyle = "#2f7049";
+    for (let i = 0; i < 9; i++) ctx.fillRect(x + 16 + i * 24, y - 6 + (i % 2) * 4, 14, 18);
+  }
+
+  function drawSecretWallBlock(x, y, w, h) {
+    ctx.fillStyle = "#161820";
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = "#303342";
+    ctx.fillRect(x + 3, y + 3, Math.max(1, w - 6), Math.max(1, h - 6));
+    ctx.fillStyle = "rgba(255,180,95,0.16)";
+    for (let px = x + 8; px < x + w - 8; px += 42) ctx.fillRect(px, y + 8, 24, 4);
+  }
+
+  function drawRoyalAmbientParticles() {
+    const time = performance.now() / 1000;
+    const sceneMagic = currentScene === ROYAL.MAGE || currentScene === ROYAL.LIBRARY || currentScene === ROYAL.SECRET || currentScene === ROYAL.VAULT;
+    const step = isMobile ? 3 : 2;
+    for (let i = 0; i < royalParticles.length; i += step) {
+      const p = royalParticles[i];
+      const px = (p.x % getRoyalWidth()) + Math.sin(time * p.speed + p.phase) * 10;
+      const py = (p.y % getRoyalHeight()) + Math.cos(time * p.speed + p.phase) * 8;
+      if (px < camera.x - 8 || px > camera.x + canvas.width + 8 || py < camera.y - 8 || py > camera.y + canvas.height + 8) continue;
+      ctx.fillStyle = sceneMagic ? `${p.color}88` : "rgba(255,244,172,0.28)";
+      ctx.fillRect(px, py, 2, 2);
+    }
+  }
+
+  const drawObjectBeforeRoyal = drawObject;
+  drawObject = function drawObjectRoyalCastlePatch(obj) {
+    if (obj?.type === "royalGate") return drawRoyalVillageGate(obj);
+    if (obj?.type === "royalDoor") return drawRoyalDoor(obj);
+    if (obj?.type === "royalFeature") return drawRoyalFeature(obj);
+    if (obj?.type === "royalBook") return drawRoyalBook(obj);
+    return drawObjectBeforeRoyal(obj);
+  };
+
+  function drawRoyalVillageGate(obj) {
+    const x = obj.x;
+    const y = obj.y;
+    drawSoftShadow(x + 12, y + obj.height - 10, obj.width - 24, 16, 0.28);
+    ctx.fillStyle = "#2d344e";
+    ctx.fillRect(x + 12, y + 28, obj.width - 24, obj.height - 28);
+    ctx.fillStyle = "#6f788e";
+    ctx.fillRect(x + 22, y + 36, obj.width - 44, obj.height - 42);
+    ctx.fillStyle = "#173d72";
+    ctx.fillRect(x + 34, y + 10, obj.width - 68, 34);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + obj.width / 2 - 34, y + obj.height - 52, 68, 8);
+    ctx.fillStyle = "#2b1a16";
+    ctx.fillRect(x + obj.width / 2 - 28, y + obj.height - 44, 56, 44);
+    ctx.fillStyle = "rgba(255,244,172,0.35)";
+    ctx.fillRect(x + obj.width / 2 - 42, y + obj.height - 56, 84, 8);
+  }
+
+  function drawRoyalDoor(obj) {
+    const x = obj.x;
+    const y = obj.y;
+    const pulse = 0.22 + Math.sin(performance.now() / 320) * 0.08;
+    ctx.fillStyle = `rgba(240,191,101,${pulse})`;
+    ctx.fillRect(x + 6, y + obj.height - 12, obj.width - 12, 10);
+    ctx.fillStyle = obj.role === "vaultDoor" ? "#a17232" : obj.role === "secretDoor" ? "#49385f" : "#2b1a16";
+    ctx.fillRect(x + 12, y + 12, obj.width - 24, obj.height - 14);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + 16, y + 18, obj.width - 32, 5);
+    if (obj.role === "vaultDoor") {
+      ctx.fillStyle = "#fff264";
+      ctx.fillRect(x + obj.width / 2 - 5, y + obj.height / 2 - 5, 10, 10);
+    }
+  }
+
+  function drawRoyalFeature(obj) {
+    const x = obj.x;
+    const y = obj.y;
+    const w = obj.width;
+    const h = obj.height;
+    if (obj.kind === "fountain") return drawRoyalFountain(x, y, w, h);
+    if (obj.kind === "statue") return drawRoyalStatue(x, y, w, h);
+    if (obj.kind === "gardenBed") return drawRoyalGardenBed(x, y, w, h, obj.color || "#ff7ab5");
+    if (obj.kind === "banner") return drawRoyalBanner(x, y, w, h, obj.color || "#1f65d6");
+    if (obj.kind === "torch") return drawRoyalTorch(x, y, w, h);
+    if (obj.kind === "benchRoyal") return drawRoyalBench(x, y, w, h);
+    if (obj.kind === "throne") return drawRoyalThrone(x, y, w, h, obj.color || "#1f65d6");
+    if (obj.kind === "pillar") return drawRoyalPillar(x, y, w, h);
+    if (obj.kind === "royalTable") return drawRoyalTable(x, y, w, h);
+    if (obj.kind === "barracksBed") return drawBarracksBed(x, y, w, h);
+    if (obj.kind === "trainingDummy") return drawTrainingDummy(x, y, w, h);
+    if (obj.kind === "weaponRack") return drawWeaponRack(x, y, w, h);
+    if (obj.kind === "armorStand") return drawArmorStand(x, y, w, h);
+    if (obj.kind === "forge") return drawRoyalForge(x, y, w, h);
+    if (obj.kind === "secretLever") return drawSecretLever(x, y, w, h);
+    if (obj.kind === "cellDoor") return drawCellDoor(x, y, w, h);
+    if (obj.kind === "chains") return drawChains(x, y, w, h);
+    if (obj.kind === "dungeonRune") return drawDungeonRune(x, y, w, h);
+    if (obj.kind === "secretPedestal") return drawSecretPedestal(x, y, w, h);
+    if (obj.kind === "magicCircle") return drawMagicCircleFeature(x, y, w, h, obj.color || "#b46dff");
+    if (obj.kind === "magicCrystal") return drawMagicCrystalFeature(x, y, w, h, obj.color || "#55e8ff");
+    if (obj.kind === "potionTable") return drawPotionTable(x, y, w, h);
+    if (obj.kind === "bookshelfMagic") return drawBookshelfMagic(x, y, w, h);
+    if (obj.kind === "bookTable") return drawBookTable(x, y, w, h);
+    if (obj.kind === "candleCluster") return drawCandleCluster(x, y, w, h);
+    if (obj.kind === "stairs") return drawRoyalStairs(x, y, w, h);
+    if (obj.kind === "treasurePile") return drawTreasurePile(x, y, w, h);
+    if (obj.kind === "vaultChest") return drawVaultChest(x, y, w, h);
+    if (obj.kind === "relicStand") return drawRelicStand(x, y, w, h);
+  }
+
+  function drawRoyalFountain(x, y, w, h) {
+    const time = performance.now() / 1000;
+    drawSoftShadow(x + 10, y + h - 12, w - 20, 18, 0.28);
+    ctx.fillStyle = "#6f788e";
+    ctx.beginPath();
+    ctx.ellipse(x + w / 2, y + h / 2, w / 2 - 8, h / 2 - 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#48a7e6";
+    ctx.beginPath();
+    ctx.ellipse(x + w / 2, y + h / 2, w / 2 - 20, h / 2 - 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "rgba(123,213,255,0.75)";
+    ctx.fillRect(x + w / 2 - 4, y + 18 + Math.sin(time * 4) * 2, 8, h / 2);
+    ctx.fillRect(x + w / 2 - 22, y + h / 2 + Math.cos(time * 3) * 2, 44, 4);
+  }
+
+  function drawRoyalStatue(x, y, w, h) {
+    drawSoftShadow(x + 2, y + h - 5, w - 4, 8, 0.24);
+    ctx.fillStyle = "#4c5368";
+    ctx.fillRect(x + 2, y + h - 12, w - 4, 12);
+    ctx.fillStyle = "#9ba4b8";
+    ctx.fillRect(x + w / 2 - 8, y + 18, 16, h - 28);
+    ctx.fillRect(x + w / 2 - 12, y + 30, 24, 8);
+    ctx.fillStyle = "#c5ccda";
+    ctx.fillRect(x + w / 2 - 7, y + 6, 14, 14);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + w / 2 - 12, y + 3, 24, 5);
+  }
+
+  function drawRoyalGardenBed(x, y, w, h, color) {
+    drawSoftShadow(x + 4, y + h - 3, w - 8, 7, 0.14);
+    ctx.fillStyle = "#2f7049";
+    ctx.fillRect(x, y, w, h);
+    for (let px = x + 8; px < x + w - 6; px += 18) {
+      for (let py = y + 8; py < y + h - 6; py += 16) {
+        ctx.fillStyle = "#26794d";
+        ctx.fillRect(px + 2, py + 5, 3, 8);
+        ctx.fillStyle = color;
+        ctx.fillRect(px, py, 8, 6);
+        ctx.fillStyle = "#fff3d6";
+        ctx.fillRect(px + 3, py + 2, 2, 2);
+      }
+    }
+  }
+
+  function drawRoyalBanner(x, y, w, h, color) {
+    ctx.fillStyle = "#2d344e";
+    ctx.fillRect(x, y, 4, h);
+    ctx.fillStyle = color;
+    ctx.fillRect(x + 4, y + 6, w, h - 12);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + 8, y + 12, w - 8, 5);
+    ctx.fillRect(x + w / 2, y + 18, 5, h - 28);
+  }
+
+  function drawRoyalTorch(x, y, w, h) {
+    const pulse = 0.22 + Math.sin(performance.now() / 180 + x) * 0.08;
+    drawRoyalGlow(x + w / 2, y + 8, 34, "255,180,95", pulse);
+    ctx.fillStyle = "#3d2c2c";
+    ctx.fillRect(x + w / 2 - 3, y + 12, 6, h - 12);
+    ctx.fillStyle = "#ff7a3d";
+    ctx.fillRect(x + w / 2 - 5, y + 4, 10, 10);
+    ctx.fillStyle = "#fff264";
+    ctx.fillRect(x + w / 2 - 2, y + 1, 5, 8);
+  }
+
+  function drawRoyalBench(x, y, w, h) {
+    drawSoftShadow(x + 3, y + h - 3, w - 6, 5, 0.18);
+    ctx.fillStyle = "#6b432e";
+    ctx.fillRect(x, y + 4, w, 8);
+    ctx.fillRect(x + 6, y + 14, w - 12, 5);
+    ctx.fillStyle = "#2d344e";
+    ctx.fillRect(x + 8, y + h - 8, 5, 8);
+    ctx.fillRect(x + w - 13, y + h - 8, 5, 8);
+  }
+
+  function drawRoyalThrone(x, y, w, h, color) {
+    drawSoftShadow(x + 4, y + h - 5, w - 8, 8, 0.22);
+    ctx.fillStyle = "#6d442f";
+    ctx.fillRect(x + 4, y + 14, w - 8, h - 14);
+    ctx.fillStyle = color;
+    ctx.fillRect(x + 10, y + 20, w - 20, h - 28);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + 6, y + 10, w - 12, 8);
+    ctx.fillRect(x + w / 2 - 6, y + 2, 12, 16);
+    ctx.fillStyle = "#fff264";
+    ctx.fillRect(x + w / 2 - 3, y, 6, 6);
+  }
+
+  function drawRoyalPillar(x, y, w, h) {
+    drawSoftShadow(x + 2, y + h - 3, w - 4, 7, 0.22);
+    ctx.fillStyle = "#4c5368";
+    ctx.fillRect(x, y + h - 10, w, 10);
+    ctx.fillRect(x + 2, y, w - 4, 10);
+    ctx.fillStyle = "#aab2c2";
+    ctx.fillRect(x + 6, y + 8, w - 12, h - 16);
+    ctx.fillStyle = "rgba(255,255,255,0.18)";
+    ctx.fillRect(x + 10, y + 12, 5, h - 24);
+  }
+
+  function drawRoyalTable(x, y, w, h) {
+    drawSoftShadow(x + 4, y + h - 4, w - 8, 8, 0.20);
+    ctx.fillStyle = "#5d3843";
+    ctx.fillRect(x, y + 8, w, h - 14);
+    ctx.fillStyle = "#8c5a3a";
+    ctx.fillRect(x + 5, y + 4, w - 10, h - 16);
+    ctx.fillStyle = "#e8dcc3";
+    ctx.fillRect(x + 20, y + 12, 44, 20);
+    ctx.fillStyle = "#55e8ff";
+    ctx.fillRect(x + w - 34, y + 14, 16, 16);
+  }
+
+  function drawBarracksBed(x, y, w, h) {
+    drawSoftShadow(x + 4, y + h - 3, w - 8, 6, 0.18);
+    ctx.fillStyle = "#4a342a";
+    ctx.fillRect(x, y + 8, w, h - 8);
+    ctx.fillStyle = "#234d8d";
+    ctx.fillRect(x + 8, y + 12, w - 16, h - 16);
+    ctx.fillStyle = "#e8dcc3";
+    ctx.fillRect(x + 8, y + 12, 20, h - 16);
+  }
+
+  function drawTrainingDummy(x, y, w, h) {
+    drawSoftShadow(x + 4, y + h - 3, w - 8, 6, 0.18);
+    ctx.fillStyle = "#6b432e";
+    ctx.fillRect(x + w / 2 - 3, y + 12, 6, h - 10);
+    ctx.fillStyle = "#a86a3f";
+    ctx.fillRect(x + 4, y + 18, w - 8, 16);
+    ctx.fillStyle = "#d2b070";
+    ctx.fillRect(x + 8, y + 4, w - 16, 16);
+  }
+
+  function drawWeaponRack(x, y, w, h) {
+    drawSoftShadow(x + 4, y + h - 4, w - 8, 7, 0.20);
+    ctx.fillStyle = "#3a2b26";
+    ctx.fillRect(x, y + 8, w, h - 12);
+    ctx.fillStyle = "#c8d0d8";
+    for (let i = 0; i < 5; i++) {
+      const px = x + 12 + i * Math.max(14, (w - 24) / 5);
+      ctx.fillRect(px, y + 12, 4, h - 18);
+      ctx.fillStyle = "#f0bf65";
+      ctx.fillRect(px - 4, y + 22, 12, 4);
+      ctx.fillStyle = "#c8d0d8";
+    }
+  }
+
+  function drawArmorStand(x, y, w, h) {
+    drawSoftShadow(x + 3, y + h - 3, w - 6, 6, 0.20);
+    ctx.fillStyle = "#2d344e";
+    ctx.fillRect(x + w / 2 - 3, y + 10, 6, h - 12);
+    ctx.fillStyle = "#1f65d6";
+    ctx.fillRect(x + 7, y + 18, w - 14, 22);
+    ctx.fillStyle = "#c8d0d8";
+    ctx.fillRect(x + 10, y + 8, w - 20, 12);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + 11, y + 22, w - 22, 4);
+  }
+
+  function drawRoyalForge(x, y, w, h) {
+    drawSoftShadow(x + 4, y + h - 5, w - 8, 10, 0.24);
+    ctx.fillStyle = "#33333c";
+    ctx.fillRect(x, y + 12, w, h - 12);
+    ctx.fillStyle = "#8a4936";
+    ctx.fillRect(x + 8, y + 20, w - 16, h - 28);
+    drawRoyalGlow(x + w / 2, y + h / 2 + 6, 44, "85,232,255", 0.22);
+    ctx.fillStyle = "#55e8ff";
+    ctx.fillRect(x + 18, y + h / 2, w - 36, 12);
+  }
+
+  function drawSecretLever(x, y, w, h) {
+    ctx.fillStyle = "#2d344e";
+    ctx.fillRect(x + 6, y + 12, 8, h - 16);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + 2, y + 6, w - 4, 10);
+  }
+
+  function drawCellDoor(x, y, w, h) {
+    ctx.fillStyle = "#161820";
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = "#7b828f";
+    for (let px = x + 5; px < x + w; px += 10) ctx.fillRect(px, y + 2, 4, h - 4);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + w / 2 - 4, y + h / 2 - 4, 8, 8);
+  }
+
+  function drawChains(x, y, w, h) {
+    ctx.strokeStyle = "#8d929a";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x + 8, y + 4);
+    ctx.lineTo(x + w - 8, y + h - 10);
+    ctx.moveTo(x + w - 8, y + 4);
+    ctx.lineTo(x + 8, y + h - 10);
+    ctx.stroke();
+  }
+
+  function drawDungeonRune(x, y, w, h) {
+    drawRoyalGlow(x + w / 2, y + h / 2, 70, "180,109,255", 0.18);
+    ctx.strokeStyle = "#b46dff";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.ellipse(x + w / 2, y + h / 2, w / 2 - 8, h / 2 - 8, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = "#fff4ac";
+    ctx.fillRect(x + w / 2 - 4, y + h / 2 - 4, 8, 8);
+  }
+
+  function drawSecretPedestal(x, y, w, h) {
+    drawSoftShadow(x + 4, y + h - 4, w - 8, 8, 0.24);
+    ctx.fillStyle = "#343042";
+    ctx.fillRect(x + 4, y + 12, w - 8, h - 12);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + 9, y + 8, w - 18, 8);
+    drawRoyalGlow(x + w / 2, y + 16, 36, "240,191,101", 0.2);
+  }
+
+  function drawMagicCircleFeature(x, y, w, h, color) {
+    const cx = x + w / 2;
+    const cy = y + h / 2;
+    drawRoyalGlow(cx, cy, Math.max(w, h) * 0.65, color === "#55e8ff" ? "85,232,255" : "180,109,255", 0.20);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, w / 2 - 10, h / 2 - 10, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - h / 2 + 18);
+    ctx.lineTo(cx + w / 2 - 20, cy + h / 3);
+    ctx.lineTo(cx - w / 2 + 20, cy + h / 3);
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  function drawMagicCrystalFeature(x, y, w, h, color) {
+    drawRoyalGlow(x + w / 2, y + h / 2, 42, color === "#55e8ff" ? "85,232,255" : "180,109,255", 0.24);
+    ctx.fillStyle = "#1f2746";
+    ctx.fillRect(x + w / 2 - 8, y + h - 12, 16, 12);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x + w / 2, y);
+    ctx.lineTo(x + w - 4, y + h / 2);
+    ctx.lineTo(x + w / 2, y + h - 12);
+    ctx.lineTo(x + 4, y + h / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.45)";
+    ctx.fillRect(x + w / 2 - 2, y + 10, 4, h / 2);
+  }
+
+  function drawPotionTable(x, y, w, h) {
+    drawRoyalTable(x, y, w, h);
+    const colors = ["#55e8ff", "#b46dff", "#7bdb73", "#ff7ab5"];
+    for (let i = 0; i < 4; i++) {
+      ctx.fillStyle = colors[i];
+      ctx.fillRect(x + 18 + i * 24, y + 12, 10, 18);
+      ctx.fillStyle = "#e9ffff";
+      ctx.fillRect(x + 20 + i * 24, y + 8, 6, 5);
+    }
+  }
+
+  function drawBookshelfMagic(x, y, w, h) {
+    ctx.fillStyle = "#3a2b26";
+    ctx.fillRect(x, y, w, h);
+    for (let row = y + 8; row < y + h - 8; row += 18) {
+      ctx.fillStyle = "#6b432e";
+      ctx.fillRect(x + 4, row + 10, w - 8, 4);
+      for (let px = x + 8; px < x + w - 8; px += 10) {
+        ctx.fillStyle = (px + row) % 3 ? "#c84a5f" : "#55e8ff";
+        ctx.fillRect(px, row, 6, 12);
+      }
+    }
+  }
+
+  function drawBookTable(x, y, w, h) {
+    drawRoyalTable(x, y, w, h);
+    ctx.fillStyle = "#e8dcc3";
+    ctx.fillRect(x + w / 2 - 28, y + 20, 56, 24);
+    ctx.fillStyle = "#b46dff";
+    ctx.fillRect(x + w / 2 - 2, y + 20, 4, 24);
+  }
+
+  function drawCandleCluster(x, y, w, h) {
+    for (let i = 0; i < 5; i++) {
+      const px = x + 5 + i * 10;
+      ctx.fillStyle = "#e8dcc3";
+      ctx.fillRect(px, y + 10 - (i % 2) * 4, 5, 16 + (i % 2) * 4);
+      ctx.fillStyle = "#ffb45f";
+      ctx.fillRect(px, y + 5 - (i % 2) * 4, 5, 5);
+    }
+  }
+
+  function drawRoyalStairs(x, y, w, h) {
+    drawSoftShadow(x + 4, y + h - 4, w - 8, 7, 0.18);
+    ctx.fillStyle = "#4d5368";
+    for (let i = 0; i < 5; i++) ctx.fillRect(x + 4 + i * 5, y + h - 8 - i * 7, w - 8 - i * 8, 6);
+  }
+
+  function drawTreasurePile(x, y, w, h) {
+    drawSoftShadow(x + 6, y + h - 5, w - 12, 10, 0.25);
+    for (let i = 0; i < 42; i++) {
+      const px = x + 8 + ((i * 23) % Math.max(12, w - 16));
+      const py = y + h - 12 - ((i * 11) % Math.max(8, h - 18));
+      ctx.fillStyle = i % 5 === 0 ? "#fff264" : "#f0bf65";
+      ctx.fillRect(px, py, 8, 5);
+    }
+    ctx.fillStyle = "#b46dff";
+    ctx.fillRect(x + w / 2 - 6, y + h / 2, 12, 10);
+  }
+
+  function drawVaultChest(x, y, w, h) {
+    const opened = ensureRoyalCastleState().vaultOpened;
+    drawSoftShadow(x + 8, y + h - 6, w - 16, 12, 0.28);
+    ctx.fillStyle = "#3a2b26";
+    ctx.fillRect(x, y + 20, w, h - 20);
+    ctx.fillStyle = opened ? "#7a5c2d" : "#b9842f";
+    ctx.fillRect(x + 8, y + 10, w - 16, h - 24);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + 8, y + 30, w - 16, 8);
+    ctx.fillStyle = opened ? "#55e8ff" : "#fff264";
+    ctx.fillRect(x + w / 2 - 8, y + h / 2 - 4, 16, 14);
+  }
+
+  function drawRelicStand(x, y, w, h) {
+    drawSoftShadow(x + 3, y + h - 4, w - 6, 8, 0.22);
+    ctx.fillStyle = "#4c5368";
+    ctx.fillRect(x + 5, y + h - 12, w - 10, 12);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + w / 2 - 7, y + 18, 14, h - 28);
+    drawRoyalGlow(x + w / 2, y + 14, 28, "255,244,172", 0.22);
+    ctx.fillStyle = "#fff264";
+    ctx.fillRect(x + w / 2 - 8, y + 8, 16, 12);
+  }
+
+  function drawRoyalBook(obj) {
+    const x = obj.x;
+    const y = obj.y;
+    drawSoftShadow(x + 1, y + obj.height - 2, obj.width - 2, 4, 0.14);
+    ctx.fillStyle = obj.stateKey === "crownLibrary" ? "#1f65d6" : "#8a4936";
+    ctx.fillRect(x, y, obj.width, obj.height);
+    ctx.fillStyle = "#f0bf65";
+    ctx.fillRect(x + obj.width / 2 - 2, y + 2, 4, obj.height - 4);
+  }
+
+  function drawRoyalGlow(cx, cy, radius, rgb, alpha) {
+    const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+    gradient.addColorStop(0, `rgba(${rgb}, ${alpha})`);
+    gradient.addColorStop(1, `rgba(${rgb}, 0)`);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+  }
+
+  const drawNpcBeforeRoyal = drawNpc;
+  drawNpc = function drawNpcRoyalCastlePatch(obj) {
+    if (!obj?.royalNpc) return drawNpcBeforeRoyal(obj);
+    const palette = {
+      royalKing: { body: "#1f65d6", trim: "#f0bf65", hair: "#e8dcc3", crown: true },
+      royalQueen: { body: "#d63c65", trim: "#f0bf65", hair: "#fff4ac", crown: true },
+      royalGuard: { body: "#244d8d", trim: "#c8d0d8", hair: "#1f2746", helmet: true },
+      royalEliteGuard: { body: "#172b4d", trim: "#f0bf65", hair: "#1f2746", helmet: true },
+      royalMage: { body: "#5f3bb4", trim: "#55e8ff", hair: "#e9ffff", hat: true },
+      royalApprentice: { body: "#55e8ff", trim: "#b46dff", hair: "#273052", hat: true },
+      royalCommander: { body: "#2d344e", trim: "#f0bf65", hair: "#8a4936", helmet: true },
+      royalArmorer: { body: "#6b432e", trim: "#c8d0d8", hair: "#2d1d18" },
+      royalLibrarian: { body: "#3b5f8f", trim: "#fff4ac", hair: "#b46dff", hat: true },
+      royalPrisoner: { body: "#6d5c75", trim: "#9ba4b8", hair: "#e8dcc3" },
+      royalAdvisor: { body: "#2f7049", trim: "#f0bf65", hair: "#e8dcc3" },
+      royalTraitor: { body: "#4b2746", trim: "#f0bf65", hair: "#1f2746" },
+      royalGardener: { body: "#2f7049", trim: "#ffb45f", hair: "#8a4936" },
+      royalNoble: { body: "#8d4be0", trim: "#f0bf65", hair: "#273052" }
+    };
+    const look = palette[obj.role] || palette.royalNoble;
+    const x = obj.x;
+    const y = obj.y + Math.sin(performance.now() / 350 + obj.bob) * 1.2;
+    drawSoftShadow(x + 2, y + obj.height - 2, obj.width - 4, 5, 0.22);
+    ctx.fillStyle = look.body;
+    ctx.fillRect(x + 4, y + 12, obj.width - 8, 13);
+    ctx.fillStyle = look.trim;
+    ctx.fillRect(x + 6, y + 14, obj.width - 12, 3);
+    ctx.fillStyle = "#f0b287";
+    ctx.fillRect(x + 6, y + 4, obj.width - 12, 10);
+    ctx.fillStyle = look.hair;
+    ctx.fillRect(x + 4, y + 2, obj.width - 8, 5);
+    if (look.crown) {
+      ctx.fillStyle = "#f0bf65";
+      ctx.fillRect(x + 4, y - 3, obj.width - 8, 5);
+      ctx.fillRect(x + 7, y - 7, 4, 5);
+      ctx.fillRect(x + obj.width - 11, y - 7, 4, 5);
+    }
+    if (look.helmet) {
+      ctx.fillStyle = "#c8d0d8";
+      ctx.fillRect(x + 4, y + 1, obj.width - 8, 6);
+      ctx.fillStyle = look.trim;
+      ctx.fillRect(x + obj.width / 2 - 2, y - 3, 4, 8);
+    }
+    if (look.hat) {
+      ctx.fillStyle = look.trim;
+      ctx.fillRect(x + 3, y, obj.width - 6, 5);
+      ctx.fillStyle = look.body;
+      ctx.beginPath();
+      ctx.moveTo(x + obj.width / 2, y - 12);
+      ctx.lineTo(x + obj.width - 3, y + 2);
+      ctx.lineTo(x + 3, y + 2);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.fillStyle = "#1f2746";
+    ctx.fillRect(x + 8, y + 8, 3, 3);
+    ctx.fillRect(x + obj.width - 11, y + 8, 3, 3);
+  };
+
+  const drawMiniMapBeforeRoyal = drawMiniMap;
+  drawMiniMap = function drawMiniMapRoyalCastlePatch() {
+    if (!isRoyalScene()) {
+      drawMiniMapBeforeRoyal();
+      return;
+    }
+    const config = getRoyalConfig();
+    const width = getRoyalWidth();
+    const height = getRoyalHeight();
+    const sx = miniMapCanvas.width / width;
+    const sy = miniMapCanvas.height / height;
+    miniCtx.clearRect(0, 0, miniMapCanvas.width, miniMapCanvas.height);
+    miniCtx.fillStyle = currentScene === ROYAL.DUNGEON || currentScene === ROYAL.SECRET ? "#181821" : "#29324a";
+    miniCtx.fillRect(0, 0, miniMapCanvas.width, miniMapCanvas.height);
+    miniCtx.fillStyle = currentScene === ROYAL.CASTLE || currentScene === ROYAL.GARDENS ? "#6fb66a" : "#a9a096";
+    miniCtx.fillRect(5, 5, miniMapCanvas.width - 10, miniMapCanvas.height - 10);
+    miniCtx.fillStyle = "#f0bf65";
+    for (const obj of objects || []) {
+      if (obj.type === "royalDoor" || obj.type === "royalFeature" && obj.message) {
+        miniCtx.fillRect(obj.x * sx - 1, obj.y * sy - 1, 4, 4);
+      }
+    }
+    miniCtx.fillStyle = "#55e8ff";
+    for (const obj of objects || []) {
+      if (obj.type === "npc" && obj.royalNpc) miniCtx.fillRect(obj.x * sx - 1, obj.y * sy - 1, 4, 4);
+    }
+    miniCtx.fillStyle = "#ff4f62";
+    for (const obj of objects || []) {
+      if (obj.type === "enemy" && obj.alive) miniCtx.fillRect(obj.x * sx - 1, obj.y * sy - 1, 4, 4);
+    }
+    miniCtx.fillStyle = "#d24c63";
+    miniCtx.fillRect(player.x * sx - 3, player.y * sy - 3, 7, 7);
+    miniCtx.fillStyle = "#fff4ac";
+    miniCtx.font = "9px sans-serif";
+    miniCtx.fillText(config.name.slice(0, 18), 7, miniMapCanvas.height - 7);
+  };
+
+  function applyRoyalDebugSceneFromUrl() {
+    if (!debugEnabled) return;
+    const requestedScene = urlParams.get("royalScene");
+    if (!isRoyalScene(requestedScene)) return;
+    setTimeout(() => {
+      if (gameOver) gameOver = false;
+      gameStarted = true;
+      startScreen?.classList.add("hidden");
+      enterRoyalScene(requestedScene, Math.floor(getRoyalConfig(requestedScene).cols / 2), getRoyalConfig(requestedScene).rows - 4, "up");
+      closeDialog();
+      updateHud();
+      updateQuestProgress();
+    }, 250);
+  }
+
+  applyRoyalDebugSceneFromUrl();
+})();
+
+
+/* ==================================================
+   ETERNAL RIFT: correção anti-travamento PC + MOBILE
+   - limita resolução interna do canvas para não derreter a GPU
+   - reduz DOM por frame, minimapa e efeitos pesados
+   - pausa quase tudo com a aba oculta
+   - mantém PC e mobile jogáveis sem quebrar save/inventário
+   ================================================== */
+(function eternalRiftFinalAntiLagPatch() {
+  if (typeof window !== "undefined" && window.ETERNAL_RIFT_FINAL_ANTI_LAG_PATCH) return;
+  if (typeof window !== "undefined") window.ETERNAL_RIFT_FINAL_ANTI_LAG_PATCH = true;
+
+  const PERF_KEY = "eternal-rift-performance-mode-v2";
+  const MOBILE_QUERY = "(max-width: 880px), (pointer: coarse)";
+  const perf = {
+    mode: "auto",
+    fps: 45,
+    hudMs: 140,
+    hintMs: 120,
+    minimapMs: 320,
+    maxPixelsPc: 1250000,
+    maxPixelsMobile: 720000,
+    lowFpsFrames: 0,
+    lastQualityCheck: 0,
+    lastInteractionHintAt: 0,
+    lastHudAt: 0,
+    lastMiniMapAt: 0
+  };
+
+  function readPerfMode() {
+    try {
+      const stored = localStorage.getItem(PERF_KEY);
+      if (["auto", "economy", "balanced", "quality"].includes(stored)) return stored;
+    } catch (error) {}
+    const urlMode = urlParams?.get?.("perf") || urlParams?.get?.("quality");
+    if (["auto", "economy", "balanced", "quality"].includes(urlMode)) return urlMode;
+    return "auto";
+  }
+
+  function isTouchLayout() {
+    return Boolean(window.matchMedia?.(MOBILE_QUERY)?.matches || document.body?.classList.contains("is-mobile"));
+  }
+
+  function applyPerformanceMode() {
+    perf.mode = readPerfMode();
+    const mobile = isTouchLayout();
+    const economy = perf.mode === "economy" || (perf.mode === "auto" && mobile);
+    const quality = perf.mode === "quality";
+
+    perf.fps = economy ? (mobile ? 28 : 38) : quality ? 60 : (mobile ? 32 : 45);
+    perf.hudMs = economy ? 240 : quality ? 90 : 140;
+    perf.hintMs = economy ? 220 : 120;
+    perf.minimapMs = economy ? (mobile ? 900 : 520) : quality ? 220 : (mobile ? 650 : 360);
+    document.body?.classList.toggle("performance-lite", economy || perf.mode === "auto");
+    document.body?.classList.toggle("performance-economy", economy);
+    try { window.ER_PERFORMANCE_MODE = perf.mode; } catch (error) {}
+  }
+
+  function clampCanvasToBudget(width, height) {
+    const mobile = isTouchLayout();
+    const budget = mobile ? perf.maxPixelsMobile : perf.maxPixelsPc;
+    const pixels = width * height;
+    if (pixels <= budget) return { width, height };
+    const scale = Math.sqrt(budget / pixels);
+    return {
+      width: Math.max(640, Math.floor(width * scale)),
+      height: Math.max(420, Math.floor(height * scale))
+    };
+  }
+
+  const ensureCanvasSizeBeforeAntiLag = ensureCanvasSize;
+  ensureCanvasSize = function ensureCanvasSizeFinalAntiLag() {
+    applyPerformanceMode();
+
+    const rect = canvas.getBoundingClientRect();
+    const cssWidth = Math.max(320, Math.round(rect.width || window.innerWidth || 960));
+    const cssHeight = Math.max(220, Math.round(rect.height || window.innerHeight || 640));
+    const manualZoom = Number(urlParams?.get?.("zoom"));
+    const hasManualZoom = Number.isFinite(manualZoom) && manualZoom >= 0.65 && manualZoom <= 1.15;
+    const mobile = isTouchLayout();
+    const landscape = cssWidth >= cssHeight;
+    const zoom = hasManualZoom ? manualZoom : mobile ? (landscape ? 0.96 : 1.04) : 0.96;
+    let targetWidth = Math.round(cssWidth / zoom);
+    let targetHeight = Math.round(cssHeight / zoom);
+    const clamped = clampCanvasToBudget(targetWidth, targetHeight);
+    targetWidth = clamped.width;
+    targetHeight = clamped.height;
+
+    if (Math.abs(canvas.width - targetWidth) > 2 || Math.abs(canvas.height - targetHeight) > 2) {
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+    }
+
+    const miniW = mobile ? 118 : 150;
+    const miniH = mobile ? 86 : 110;
+    if (miniMapCanvas && (miniMapCanvas.width !== miniW || miniMapCanvas.height !== miniH)) {
+      miniMapCanvas.width = miniW;
+      miniMapCanvas.height = miniH;
+    }
+  };
+
+  const updateDeviceModeBeforeAntiLag = updateDeviceMode;
+  updateDeviceMode = function updateDeviceModeFinalAntiLag() {
+    const result = updateDeviceModeBeforeAntiLag?.();
+    applyPerformanceMode();
+    if (typeof resetJoystick === "function") resetJoystick();
+    return result;
+  };
+
+  const updateHudBeforeAntiLag = updateHud;
+  updateHud = function updateHudFinalAntiLag(force = false) {
+    const now = performance.now();
+    const urgent = force || !gameStarted || gameOver || inventoryOpen || pauseOpen || shopOpen || dialogOpen || !bossHud?.classList.contains("hidden");
+    if (!urgent && now - perf.lastHudAt < perf.hudMs) return;
+    perf.lastHudAt = now;
+    return updateHudBeforeAntiLag();
+  };
+
+  const updateInteractionHintBeforeAntiLag = updateInteractionHint;
+  updateInteractionHint = function updateInteractionHintFinalAntiLag() {
+    const now = performance.now();
+    if (!inventoryOpen && !pauseOpen && !shopOpen && now - perf.lastInteractionHintAt < perf.hintMs) return;
+    perf.lastInteractionHintAt = now;
+    return updateInteractionHintBeforeAntiLag();
+  };
+
+  const drawMiniMapBeforeAntiLag = drawMiniMap;
+  drawMiniMap = function drawMiniMapFinalAntiLag() {
+    if (!miniMapCanvas || miniMapCanvas.classList.contains("hidden")) return;
+    const now = performance.now();
+    const urgent = !gameStarted || gameOver || currentScene !== (drawMiniMapFinalAntiLag._scene || "") || Math.abs((player.x || 0) - (drawMiniMapFinalAntiLag._px || 0)) > TILE * 2 || Math.abs((player.y || 0) - (drawMiniMapFinalAntiLag._py || 0)) > TILE * 2;
+    if (!urgent && now - perf.lastMiniMapAt < perf.minimapMs) return;
+    perf.lastMiniMapAt = now;
+    drawMiniMapFinalAntiLag._scene = currentScene;
+    drawMiniMapFinalAntiLag._px = player.x || 0;
+    drawMiniMapFinalAntiLag._py = player.y || 0;
+    return drawMiniMapBeforeAntiLag();
+  };
+
+  function trimRuntimeEffects() {
+    const economy = document.body?.classList.contains("performance-economy");
+    const mobile = isTouchLayout();
+    const projectileLimit = economy ? (mobile ? 22 : 36) : 52;
+    const textLimit = economy ? (mobile ? 12 : 18) : 28;
+    const hazardLimit = economy ? 16 : 26;
+    const trailLimit = economy ? 8 : 14;
+
+    if (Array.isArray(projectiles) && projectiles.length > projectileLimit) projectiles.splice(0, projectiles.length - projectileLimit);
+    if (Array.isArray(enemyProjectiles) && enemyProjectiles.length > projectileLimit) enemyProjectiles.splice(0, enemyProjectiles.length - projectileLimit);
+    if (Array.isArray(floatingTexts) && floatingTexts.length > textLimit) floatingTexts.splice(0, floatingTexts.length - textLimit);
+    if (Array.isArray(hazardZones) && hazardZones.length > hazardLimit) hazardZones.splice(0, hazardZones.length - hazardLimit);
+    if (Array.isArray(dashTrails) && dashTrails.length > trailLimit) dashTrails.splice(0, dashTrails.length - trailLimit);
+    if (Array.isArray(healBursts) && healBursts.length > 6) healBursts.splice(0, healBursts.length - 6);
+    if (Array.isArray(shockwaves) && shockwaves.length > 5) shockwaves.splice(0, shockwaves.length - 5);
+  }
+
+  const updateBeforeAntiLag = update;
+  update = function updateFinalAntiLag(delta) {
+    const safeDelta = Math.min(Math.max(delta || 0, 0), document.body?.classList.contains("performance-economy") ? 0.045 : 0.05);
+    const result = updateBeforeAntiLag(safeDelta);
+    trimRuntimeEffects();
+    return result;
+  };
+
+  const drawBeforeAntiLag = draw;
+  draw = function drawFinalAntiLag() {
+    const oldAlpha = ctx.globalAlpha;
+    const oldShadowBlur = ctx.shadowBlur;
+    try {
+      if (document.body?.classList.contains("performance-economy")) ctx.shadowBlur = 0;
+      return drawBeforeAntiLag();
+    } finally {
+      ctx.globalAlpha = oldAlpha;
+      ctx.shadowBlur = oldShadowBlur;
+    }
+  };
+
+  let lastFrameAt = 0;
+  let frameDebt = 0;
+  gameLoop = function gameLoopFinalAntiLag(time) {
+    const targetMs = 1000 / Math.max(24, perf.fps || 45);
+
+    if (document.hidden) {
+      lastTime = time;
+      requestAnimationFrame(gameLoop);
+      return;
+    }
+
+    if (time - lastFrameAt < targetMs) {
+      requestAnimationFrame(gameLoop);
+      return;
+    }
+
+    const rawDelta = lastTime ? (time - lastTime) / 1000 : 0;
+    lastTime = time;
+    lastFrameAt = time;
+
+    try {
+      update(Math.min(rawDelta, 0.05));
+      draw();
+    } catch (error) {
+      showErrorMessage(error);
+    }
+
+    const frameTime = performance.now() - time;
+    if (time - perf.lastQualityCheck > 1000) {
+      if (frameTime > targetMs * 1.25) perf.lowFpsFrames += 1;
+      else perf.lowFpsFrames = Math.max(0, perf.lowFpsFrames - 1);
+      perf.lastQualityCheck = time;
+
+      if (perf.mode === "auto" && perf.lowFpsFrames >= 4) {
+        try { localStorage.setItem(PERF_KEY, "economy"); } catch (error) {}
+        perf.lowFpsFrames = 0;
+        applyPerformanceMode();
+        if (typeof showHudToast === "function") showHudToast("Modo economia ativado para reduzir travamentos.", 2.4);
+      }
+    }
+
+    requestAnimationFrame(gameLoop);
+  };
+
+  document.addEventListener("visibilitychange", () => {
+    keys?.clear?.();
+    if (typeof resetJoystick === "function") resetJoystick();
+    lastTime = performance.now();
+  });
+
+  window.addEventListener("resize", () => {
+    applyPerformanceMode();
+    ensureCanvasSize();
+  }, { passive: true });
+
+  window.addEventListener("orientationchange", () => {
+    setTimeout(() => {
+      applyPerformanceMode();
+      ensureCanvasSize();
+    }, 160);
+  }, { passive: true });
+
+  window.ER_SET_PERFORMANCE_MODE = function setPerformanceMode(mode) {
+    const safeMode = ["auto", "economy", "balanced", "quality"].includes(mode) ? mode : "auto";
+    try { localStorage.setItem(PERF_KEY, safeMode); } catch (error) {}
+    applyPerformanceMode();
+    ensureCanvasSize();
+    if (typeof showHudToast === "function") showHudToast(`Desempenho: ${safeMode}`);
+  };
+
+  applyPerformanceMode();
+  setTimeout(() => {
+    ensureCanvasSize();
+    updateHud(true);
+  }, 120);
+})();
+
+/* ==================================================
+   ETERNAL RIFT: correção de movimento liso PC + MOBILE
+   - remove o andar "travado" causado por FPS baixo/skip agressivo
+   - mantém otimizações pesadas, mas atualiza input/movimento a cada frame
+   - reduz resize/canvas por frame para evitar microengasgos
+   ================================================== */
+(function eternalRiftSmoothMovementPatch() {
+  if (typeof window !== "undefined" && window.ETERNAL_RIFT_SMOOTH_MOVEMENT_PATCH) return;
+  if (typeof window !== "undefined") window.ETERNAL_RIFT_SMOOTH_MOVEMENT_PATCH = true;
+
+  const SMOOTH_PERF_KEY = "eternal-rift-performance-mode-v2";
+
+  // A versão anti-travamento anterior podia salvar "economy" automaticamente,
+  // deixando o personagem com sensação de passos quebrados. Voltamos para um
+  // padrão equilibrado sem apagar saves do jogador.
+  try {
+    const storedMode = localStorage.getItem(SMOOTH_PERF_KEY);
+    if (storedMode === "economy") localStorage.setItem(SMOOTH_PERF_KEY, "balanced");
+  } catch (error) {}
+
+  // Mantém os filtros de objetos/efeitos, mas não limita o movimento a 28/38 FPS.
+  if (window.ER_PERFORMANCE && typeof window.ER_PERFORMANCE === "object") {
+    window.ER_PERFORMANCE.fpsMobile = 60;
+    window.ER_PERFORMANCE.fpsPcLite = 60;
+    window.ER_PERFORMANCE.fpsPc = 60;
+  }
+
+  const originalEnsureCanvasSizeSmooth = ensureCanvasSize;
+  let lastEnsureAtSmooth = 0;
+  let lastViewportKeySmooth = "";
+
+  function getViewportKeySmooth() {
+    const visual = window.visualViewport;
+    const width = Math.round(visual?.width || window.innerWidth || 0);
+    const height = Math.round(visual?.height || window.innerHeight || 0);
+    const scale = Math.round((visual?.scale || 1) * 100);
+    const dpr = Math.round((window.devicePixelRatio || 1) * 100);
+    return `${width}x${height}@${scale}/${dpr}`;
+  }
+
+  ensureCanvasSize = function ensureCanvasSizeSmoothMovement(force = false) {
+    const now = performance.now();
+    const key = getViewportKeySmooth();
+    const changed = key !== lastViewportKeySmooth;
+
+    // Antes era chamado em todo update. Agora só recalcula quando precisa,
+    // porque mexer no canvas constantemente pode dar microtravadas no movimento.
+    if (!force && !changed && now - lastEnsureAtSmooth < 650) return;
+
+    lastViewportKeySmooth = key;
+    lastEnsureAtSmooth = now;
+    return originalEnsureCanvasSizeSmooth();
+  };
+
+  function clearStuckInputSmooth() {
+    try { keys?.clear?.(); } catch (error) {}
+    try { if (typeof resetJoystick === "function") resetJoystick(); } catch (error) {}
+  }
+
+  window.addEventListener("blur", clearStuckInputSmooth, { passive: true });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) clearStuckInputSmooth();
+    lastTime = performance.now();
+  });
+
+  window.addEventListener("resize", () => {
+    ensureCanvasSize(true);
+  }, { passive: true });
+
+  window.addEventListener("orientationchange", () => {
+    clearStuckInputSmooth();
+    setTimeout(() => ensureCanvasSize(true), 180);
+  }, { passive: true });
+
+  let lastSmoothFrameTime = 0;
+
+  gameLoop = function gameLoopSmoothMovement(time) {
+    if (document.hidden) {
+      lastTime = time;
+      lastSmoothFrameTime = time;
+      requestAnimationFrame(gameLoop);
+      return;
+    }
+
+    // Sem frame-skip agressivo: o navegador decide a cadência do RAF.
+    // Isso deixa teclado, joystick, câmera e animação do personagem muito mais lisos.
+    if (!lastTime) lastTime = time;
+    const rawDelta = Math.max(0, (time - lastTime) / 1000);
+    lastTime = time;
+
+    // Evita salto gigante depois de uma travada, mas sem transformar movimento
+    // em passos secos. Em gameplay normal fica ~0.016s em telas 60 Hz.
+    const delta = Math.min(rawDelta || 0.016, 0.04);
+
+    try {
+      update(delta);
+      draw();
+    } catch (error) {
+      showErrorMessage(error);
+    }
+
+    lastSmoothFrameTime = time;
+    requestAnimationFrame(gameLoop);
+  };
+
+  setTimeout(() => {
+    ensureCanvasSize(true);
+    if (typeof updateHud === "function") updateHud(true);
+    if (typeof showHudToast === "function") showHudToast("Movimento liso ativado.", 1.8);
+  }, 160);
+})();
+
+
+/* ==================================================
+   ETERNAL RIFT: correção definitiva do movimento travado
+   - remove a parada periódica causada pela limpeza automática de input
+   - suaviza teclado/joystick sem limitar FPS nem dar frame-skip
+   ================================================== */
+(function eternalRiftNoMoreMovementStutterPatch() {
+  if (typeof window !== "undefined" && window.ETERNAL_RIFT_NO_MORE_MOVEMENT_STUTTER_PATCH) return;
+  if (typeof window !== "undefined") window.ETERNAL_RIFT_NO_MORE_MOVEMENT_STUTTER_PATCH = true;
+
+  let lastInputActivityAt = 0;
+  let lastKnownMoving = false;
+
+  function hasMovementInputNow() {
+    try {
+      return Boolean(
+        keys?.has?.("w") || keys?.has?.("a") || keys?.has?.("s") || keys?.has?.("d") ||
+        keys?.has?.("arrowup") || keys?.has?.("arrowdown") || keys?.has?.("arrowleft") || keys?.has?.("arrowright") ||
+        joystick?.active || Number(joystick?.strength || 0) > 0.05
+      );
+    } catch (error) {
+      return false;
+    }
+  }
+
+  window.addEventListener("keydown", (event) => {
+    const key = String(event.key || "").toLowerCase();
+    if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(key)) {
+      lastInputActivityAt = performance.now();
+    }
+  }, true);
+
+  window.addEventListener("keyup", () => {
+    lastInputActivityAt = performance.now();
+  }, true);
+
+  if (joystickBase) {
+    joystickBase.addEventListener("pointerdown", () => { lastInputActivityAt = performance.now(); }, true);
+    joystickBase.addEventListener("pointermove", () => { lastInputActivityAt = performance.now(); }, true);
+    joystickBase.addEventListener("pointerup", () => { lastInputActivityAt = performance.now(); }, true);
+    joystickBase.addEventListener("pointercancel", () => { lastInputActivityAt = performance.now(); }, true);
+  }
+
+  const updateBeforeNoStutter = update;
+  update = function updateNoMoreMovementStutter(delta) {
+    const movingBefore = hasMovementInputNow();
+    const result = updateBeforeNoStutter(delta);
+    const movingAfter = hasMovementInputNow();
+
+    // Se algo externo limpou o input durante um movimento contínuo, não resetamos
+    // animação/câmera no mesmo frame. Isso elimina o "tranco" visual enquanto segura o botão.
+    if (movingBefore || movingAfter) {
+      lastKnownMoving = true;
+      lastInputActivityAt = performance.now();
+    } else if (lastKnownMoving && performance.now() - lastInputActivityAt > 80) {
+      lastKnownMoving = false;
+    }
+
+    return result;
+  };
+
+  if (typeof showHudToast === "function") {
+    setTimeout(() => showHudToast("Movimento corrigido sem pausas de input.", 1.8), 550);
+  }
+})();
+
+/* ==================================================
+   ETERNAL RIFT: MOVIMENTO LIVRE SEM PAUSAS - FINAL REAL
+   - movimento atualizado em todo requestAnimationFrame, sem frame-skip
+   - teclado e D-Pad mantêm input mesmo se algum patch antigo limpar keys
+   - joystick protegido contra lostpointercapture prematuro
+   - canvas recalculado só quando a tela muda, evitando microtravadas
+   ================================================== */
+(function eternalRiftFreeMovementNoPausesFinalRealPatch() {
+  if (typeof window !== "undefined" && window.ETERNAL_RIFT_FREE_MOVEMENT_NO_PAUSES_FINAL_REAL) return;
+  if (typeof window !== "undefined") window.ETERNAL_RIFT_FREE_MOVEMENT_NO_PAUSES_FINAL_REAL = true;
+
+  const PERF_KEY = "eternal-rift-performance-mode-v2";
+  const MOVE_KEYS = new Set(["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"]);
+  const heldKeyboardKeys = new Set();
+  const heldTouchKeys = new Set();
+
+  function nowMsFreeMove() {
+    return typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+  }
+
+  function normalizeMoveKey(key) {
+    const safe = String(key || "").toLowerCase();
+    if (safe === "up") return "arrowup";
+    if (safe === "down") return "arrowdown";
+    if (safe === "left") return "arrowleft";
+    if (safe === "right") return "arrowright";
+    return safe;
+  }
+
+  function typingNowFreeMove() {
+    try {
+      if (typeof isTypingInTextField === "function" && isTypingInTextField()) return true;
+    } catch (error) {}
+    const active = document.activeElement;
+    if (!active) return false;
+    const tag = String(active.tagName || "").toLowerCase();
+    return tag === "input" || tag === "textarea" || active.isContentEditable === true;
+  }
+
+  function movementGameplayBlocked() {
+    return Boolean(
+      !gameStarted ||
+      gameOver ||
+      pauseOpen ||
+      inventoryOpen ||
+      shopOpen ||
+      dialogOpen ||
+      typingNowFreeMove()
+    );
+  }
+
+  function hasHeld(key) {
+    return Boolean(
+      (typeof keys !== "undefined" && keys?.has?.(key)) ||
+      heldKeyboardKeys.has(key) ||
+      heldTouchKeys.has(key)
+    );
+  }
+
+  function getKeyboardVectorFreeMove() {
+    const x = (hasHeld("arrowright") || hasHeld("d") ? 1 : 0) -
+      (hasHeld("arrowleft") || hasHeld("a") ? 1 : 0);
+    const y = (hasHeld("arrowdown") || hasHeld("s") ? 1 : 0) -
+      (hasHeld("arrowup") || hasHeld("w") ? 1 : 0);
+    return { x, y, length: Math.hypot(x, y) };
+  }
+
+  function clearHeldMovementInputFreeMove() {
+    heldKeyboardKeys.clear();
+    heldTouchKeys.clear();
+    try {
+      for (const key of MOVE_KEYS) keys?.delete?.(key);
+    } catch (error) {}
+  }
+
+  // Força modo equilibrado: remove o modo economia automático que dava sensação de passos quebrados.
+  try {
+    const storedMode = localStorage.getItem(PERF_KEY);
+    if (!storedMode || storedMode === "auto" || storedMode === "economy") {
+      localStorage.setItem(PERF_KEY, "balanced");
+    }
+  } catch (error) {}
+  try {
+    document.body?.classList.remove("performance-economy", "performance-lite");
+  } catch (error) {}
+
+  // Captura o movimento antes de qualquer patch antigo mexer em keys.
+  window.addEventListener("keydown", (event) => {
+    const key = normalizeMoveKey(event.key);
+    if (!MOVE_KEYS.has(key) || typingNowFreeMove()) return;
+    heldKeyboardKeys.add(key);
+    try { keys?.add?.(key); } catch (error) {}
+  }, true);
+
+  window.addEventListener("keyup", (event) => {
+    const key = normalizeMoveKey(event.key);
+    if (!MOVE_KEYS.has(key)) return;
+    heldKeyboardKeys.delete(key);
+    try { keys?.delete?.(key); } catch (error) {}
+  }, true);
+
+  // D-Pad mobile também passa a ter um estado próprio, sem depender só do Set keys.
+  try {
+    document.querySelectorAll("[data-touch-key]").forEach((button) => {
+      const key = normalizeMoveKey(button.dataset.touchKey);
+      if (!MOVE_KEYS.has(key)) return;
+
+      button.addEventListener("pointerdown", () => {
+        heldTouchKeys.add(key);
+        try { keys?.add?.(key); } catch (error) {}
+      }, true);
+
+      const release = () => {
+        heldTouchKeys.delete(key);
+        try { keys?.delete?.(key); } catch (error) {}
+      };
+
+      button.addEventListener("pointerup", release, true);
+      button.addEventListener("pointercancel", release, true);
+      button.addEventListener("lostpointercapture", release, true);
+    });
+  } catch (error) {}
+
+  // Impede que o joystick zere sozinho por lostpointercapture enquanto o dedo ainda está arrastando.
+  let joystickFingerDownFreeMove = false;
+  if (typeof joystickBase !== "undefined" && joystickBase) {
+    try {
+      joystickBase.style.touchAction = "none";
+      joystickBase.style.userSelect = "none";
+      joystickBase.style.webkitUserSelect = "none";
+
+      joystickBase.addEventListener("pointerdown", () => {
+        joystickFingerDownFreeMove = true;
+      }, true);
+
+      joystickBase.addEventListener("pointerup", () => {
+        joystickFingerDownFreeMove = false;
+      }, true);
+
+      joystickBase.addEventListener("pointercancel", () => {
+        joystickFingerDownFreeMove = false;
+      }, true);
+
+      joystickBase.addEventListener("lostpointercapture", (event) => {
+        if (joystickFingerDownFreeMove) {
+          event.stopImmediatePropagation?.();
+        }
+      }, true);
+    } catch (error) {}
+  }
+
+  window.addEventListener("blur", clearHeldMovementInputFreeMove, { passive: true });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) clearHeldMovementInputFreeMove();
+  }, { passive: true });
+
+  // Movimento definitivo: união de teclado, D-Pad e joystick.
+  const getMovementInputBeforeFreeMove = typeof getMovementInput === "function" ? getMovementInput : null;
+  getMovementInput = function getMovementInputFreeMoveNoPauses() {
+    if (movementGameplayBlocked()) return { x: 0, y: 0, strength: 0 };
+
+    const joyStrength = Number(joystick?.strength || 0);
+    if (joystick?.active || joyStrength > 0.05) {
+      return {
+        x: Number(joystick.x || 0),
+        y: Number(joystick.y || 0),
+        strength: clamp(joyStrength, 0, 1)
+      };
+    }
+
+    const keyboard = getKeyboardVectorFreeMove();
+    if (keyboard.length > 0) {
+      return { x: keyboard.x, y: keyboard.y, strength: 1 };
+    }
+
+    if (getMovementInputBeforeFreeMove) return getMovementInputBeforeFreeMove();
+    return { x: 0, y: 0, strength: 0 };
+  };
+
+  // Reduz microtravadas de layout: nada de recalcular tamanho do canvas toda hora.
+  const ensureCanvasSizeBeforeFreeMove = typeof ensureCanvasSize === "function" ? ensureCanvasSize : null;
+  let lastCanvasKeyFreeMove = "";
+  let lastCanvasCheckFreeMove = 0;
+
+  function getCanvasKeyFreeMove() {
+    const visual = window.visualViewport;
+    const width = Math.round(visual?.width || window.innerWidth || 0);
+    const height = Math.round(visual?.height || window.innerHeight || 0);
+    const scale = Math.round((visual?.scale || 1) * 100);
+    const dpr = Math.round((window.devicePixelRatio || 1) * 100);
+    return `${width}x${height}@${scale}/${dpr}`;
+  }
+
+  ensureCanvasSize = function ensureCanvasSizeOnlyWhenNeededFreeMove(force = false) {
+    if (!ensureCanvasSizeBeforeFreeMove) return;
+    const now = nowMsFreeMove();
+    const key = getCanvasKeyFreeMove();
+    const changed = key !== lastCanvasKeyFreeMove;
+
+    if (!force && !changed && now - lastCanvasCheckFreeMove < 1800) return;
+
+    lastCanvasKeyFreeMove = key;
+    lastCanvasCheckFreeMove = now;
+    return ensureCanvasSizeBeforeFreeMove(true);
+  };
+
+  window.addEventListener("resize", () => {
+    lastCanvasKeyFreeMove = "";
+    setTimeout(() => ensureCanvasSize(true), 80);
+  }, { passive: true });
+
+  window.addEventListener("orientationchange", () => {
+    lastCanvasKeyFreeMove = "";
+    setTimeout(() => ensureCanvasSize(true), 180);
+  }, { passive: true });
+
+  // Loop final: sem skip de frames, sem alvo artificial de 28/38/45 FPS.
+  let freeMoveLastFrame = 0;
+  gameLoop = function gameLoopFreeMovementNoPauses(time) {
+    if (document.hidden) {
+      freeMoveLastFrame = time || nowMsFreeMove();
+      lastTime = freeMoveLastFrame;
+      requestAnimationFrame(gameLoop);
+      return;
+    }
+
+    if (!freeMoveLastFrame) freeMoveLastFrame = time || nowMsFreeMove();
+    let delta = ((time || nowMsFreeMove()) - freeMoveLastFrame) / 1000;
+    freeMoveLastFrame = time || nowMsFreeMove();
+
+    if (!Number.isFinite(delta) || delta <= 0) delta = 1 / 60;
+    delta = Math.min(delta, 0.05);
+
+    try {
+      update(delta);
+      draw();
+    } catch (error) {
+      showErrorMessage(error);
+    }
+
+    requestAnimationFrame(gameLoop);
+  };
+
+  lastTime = nowMsFreeMove();
+  freeMoveLastFrame = lastTime;
+
+  setTimeout(() => {
+    try {
+      ensureCanvasSize(true);
+      updateHud?.(true);
+      showHudToast?.("Movimento livre sem pausas ativado.", 1.8);
+    } catch (error) {}
   }, 250);
+})();
+
+/* ==================================================
+   ETERNAL RIFT: MOTOR DE MOVIMENTO CONTÍNUO FINALÍSSIMO
+   Objetivo: player andar livre, sem pausas, no PC e MOBILE.
+   - movimento aplicado antes dos sistemas pesados
+   - input físico preservado mesmo se patches antigos limparem keys
+   - hitbox de pé menor para não agarrar em móveis/cantos
+   - sem frame-skip, sem modo economia automático no movimento
+   - autosave adiado enquanto o jogador está andando
+   ================================================== */
+(function eternalRiftContinuousMovementFinalissimo() {
+  if (typeof window !== "undefined" && window.ETERNAL_RIFT_CONTINUOUS_MOVEMENT_FINALISSIMO) return;
+  if (typeof window !== "undefined") window.ETERNAL_RIFT_CONTINUOUS_MOVEMENT_FINALISSIMO = true;
+
+  const MOVE_KEYS = new Set(["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"]);
+  const heldKeyboardMoveKeys = new Set();
+  const heldTouchMoveKeys = new Set();
+  let lastInputVector = { x: 0, y: 0, strength: 0 };
+  let lastInputVectorAt = 0;
+  let walkCycleDistance = 0;
+  let suppressOriginalMovementInput = false;
+  let lastRealMovementAt = 0;
+  let lastContinuousLoopTime = 0;
+
+  function nowMsContinuousMove() {
+    return typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+  }
+
+  function normalizeMoveKeyFinal(key) {
+    const safe = String(key || "").toLowerCase();
+    if (safe === " ") return "space";
+    if (safe === "up") return "arrowup";
+    if (safe === "down") return "arrowdown";
+    if (safe === "left") return "arrowleft";
+    if (safe === "right") return "arrowright";
+    return safe;
+  }
+
+  function isTypingFinalMove() {
+    try {
+      if (typeof isTypingInTextField === "function" && isTypingInTextField()) return true;
+    } catch (error) {}
+    const active = document.activeElement;
+    if (!active) return false;
+    const tag = String(active.tagName || "").toLowerCase();
+    return tag === "input" || tag === "textarea" || active.isContentEditable === true;
+  }
+
+  function movementBlockedFinal() {
+    return Boolean(
+      !gameStarted ||
+      gameOver ||
+      pauseOpen ||
+      inventoryOpen ||
+      shopOpen ||
+      dialogOpen ||
+      isTypingFinalMove() ||
+      Number(hitstopTimer || 0) > 0
+    );
+  }
+
+  function hasMoveKeyFinal(key) {
+    return Boolean(
+      heldKeyboardMoveKeys.has(key) ||
+      heldTouchMoveKeys.has(key) ||
+      (typeof keys !== "undefined" && keys?.has?.(key))
+    );
+  }
+
+  function clearHeldMoveKeysFinal() {
+    heldKeyboardMoveKeys.clear();
+    heldTouchMoveKeys.clear();
+    try {
+      for (const key of MOVE_KEYS) keys?.delete?.(key);
+    } catch (error) {}
+    lastInputVector = { x: 0, y: 0, strength: 0 };
+    lastInputVectorAt = 0;
+  }
+
+  function restorePhysicalMoveKeysFinal() {
+    if (movementBlockedFinal()) return;
+    try {
+      for (const key of heldKeyboardMoveKeys) keys?.add?.(key);
+      for (const key of heldTouchMoveKeys) keys?.add?.(key);
+    } catch (error) {}
+  }
+
+  // Alguns patches antigos usam keys.clear() em momentos que não deveriam.
+  // Aqui o clear continua existindo, mas as teclas fisicamente seguradas voltam no mesmo instante.
+  try {
+    if (keys && !keys.__continuousMovementClearPatched) {
+      const originalClear = keys.clear.bind(keys);
+      keys.clear = function clearWithoutKillingHeldMovement() {
+        originalClear();
+        restorePhysicalMoveKeysFinal();
+      };
+      keys.__continuousMovementClearPatched = true;
+    }
+  } catch (error) {}
+
+  window.addEventListener("keydown", (event) => {
+    const key = normalizeMoveKeyFinal(event.key);
+    if (!MOVE_KEYS.has(key) || isTypingFinalMove()) return;
+    heldKeyboardMoveKeys.add(key);
+    try { keys?.add?.(key); } catch (error) {}
+  }, true);
+
+  window.addEventListener("keyup", (event) => {
+    const key = normalizeMoveKeyFinal(event.key);
+    if (!MOVE_KEYS.has(key)) return;
+    heldKeyboardMoveKeys.delete(key);
+    try { keys?.delete?.(key); } catch (error) {}
+  }, true);
+
+  try {
+    document.querySelectorAll("[data-touch-key]").forEach((button) => {
+      const key = normalizeMoveKeyFinal(button.dataset.touchKey);
+      if (!MOVE_KEYS.has(key)) return;
+      button.addEventListener("pointerdown", () => {
+        heldTouchMoveKeys.add(key);
+        try { keys?.add?.(key); } catch (error) {}
+      }, true);
+      const release = () => {
+        heldTouchMoveKeys.delete(key);
+        try { keys?.delete?.(key); } catch (error) {}
+      };
+      button.addEventListener("pointerup", release, true);
+      button.addEventListener("pointercancel", release, true);
+      button.addEventListener("lostpointercapture", release, true);
+    });
+  } catch (error) {}
+
+  window.addEventListener("blur", clearHeldMoveKeysFinal, { passive: true });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) clearHeldMoveKeysFinal();
+  }, { passive: true });
+
+  // Hitbox de pé: reduz agarrões em móveis, portas, cantos e objetos decorativos.
+  // Isso dá sensação de movimento livre sem transformar o personagem em fantasma.
+  try {
+    const getPlayerRectBeforeContinuousMove = getPlayerRect;
+    getPlayerRect = function getPlayerFootRectContinuousMove(nextX = player.x, nextY = player.y) {
+      const width = Math.max(8, Math.min(12, Number(player.width || 22) - 10));
+      const height = Math.max(8, Math.min(12, Number(player.height || 26) - 14));
+      return {
+        x: nextX + (Number(player.width || 22) - width) / 2,
+        y: nextY + Number(player.height || 26) - height - 3,
+        width,
+        height
+      };
+    };
+    window.ETERNAL_RIFT_OLD_PLAYER_RECT = getPlayerRectBeforeContinuousMove;
+  } catch (error) {}
+
+  function readContinuousMovementInput() {
+    if (suppressOriginalMovementInput || movementBlockedFinal()) return { x: 0, y: 0, strength: 0 };
+
+    const joyStrength = Number(joystick?.strength || 0);
+    if (joystick && (joystick.active || joyStrength > 0.05)) {
+      const vector = {
+        x: Number(joystick.x || 0),
+        y: Number(joystick.y || 0),
+        strength: clamp(joyStrength, 0, 1)
+      };
+      if (Math.hypot(vector.x, vector.y) > 0.01 && vector.strength > 0.01) {
+        lastInputVector = vector;
+        lastInputVectorAt = nowMsContinuousMove();
+      }
+      return vector;
+    }
+
+    const x = (hasMoveKeyFinal("arrowright") || hasMoveKeyFinal("d") ? 1 : 0) -
+      (hasMoveKeyFinal("arrowleft") || hasMoveKeyFinal("a") ? 1 : 0);
+    const y = (hasMoveKeyFinal("arrowdown") || hasMoveKeyFinal("s") ? 1 : 0) -
+      (hasMoveKeyFinal("arrowup") || hasMoveKeyFinal("w") ? 1 : 0);
+    const length = Math.hypot(x, y);
+
+    if (length > 0) {
+      const vector = { x, y, strength: 1 };
+      lastInputVector = vector;
+      lastInputVectorAt = nowMsContinuousMove();
+      return vector;
+    }
+
+    // Ponte de 45 ms para eliminar a micro-parada entre soltar uma direção e apertar outra.
+    // É curta o bastante para não parecer que o personagem escorrega sozinho.
+    if (lastInputVector.strength > 0 && nowMsContinuousMove() - lastInputVectorAt < 45) {
+      return lastInputVector;
+    }
+
+    return { x: 0, y: 0, strength: 0 };
+  }
+
+  const getMovementInputBeforeContinuousFinal = typeof getMovementInput === "function" ? getMovementInput : null;
+  getMovementInput = function getMovementInputContinuousFinal() {
+    if (suppressOriginalMovementInput) return { x: 0, y: 0, strength: 0 };
+    const vector = readContinuousMovementInput();
+    if (Math.hypot(vector.x, vector.y) > 0.01 && vector.strength > 0.01) return vector;
+    return getMovementInputBeforeContinuousFinal ? getMovementInputBeforeContinuousFinal() : vector;
+  };
+
+  function updateDirectionFromVectorFinal(x, y) {
+    if (Math.abs(x) > Math.abs(y)) player.direction = x > 0 ? "right" : "left";
+    else if (y !== 0) player.direction = y > 0 ? "down" : "up";
+  }
+
+  function moveAxisContinuousFinal(dx, dy) {
+    let moved = false;
+    if (dx && canMoveTo(player.x + dx, player.y)) {
+      player.x += dx;
+      moved = true;
+    }
+    if (dy && canMoveTo(player.x, player.y + dy)) {
+      player.y += dy;
+      moved = true;
+    }
+
+    // Ajuda o personagem a não grudar em quinas quando o hitbox está raspando.
+    if (!moved && dx && dy) {
+      const halfX = dx * 0.5;
+      const halfY = dy * 0.5;
+      if (canMoveTo(player.x + halfX, player.y)) {
+        player.x += halfX;
+        moved = true;
+      }
+      if (canMoveTo(player.x, player.y + halfY)) {
+        player.y += halfY;
+        moved = true;
+      }
+    }
+
+    return moved;
+  }
+
+  function applyContinuousPlayerMovement(delta) {
+    if (movementBlockedFinal()) return false;
+    if (Math.abs(Number(playerKnockbackX || 0)) + Math.abs(Number(playerKnockbackY || 0)) >= 8) return false;
+
+    const input = readContinuousMovementInput();
+    const inputLength = Math.hypot(input.x, input.y);
+    if (inputLength <= 0.01 || input.strength <= 0.01) return false;
+
+    updateDirectionFromVectorFinal(input.x, input.y);
+
+    const speed = Math.max(1, Number(getPlayerSpeed?.() || player.speed || player.baseSpeed || 150)) * clamp(input.strength, 0, 1);
+    let remaining = Math.min(Math.max(delta || 0, 0), 0.05);
+    let movedAny = false;
+
+    // Subpassos pequenos: evita "pulinhos" quando o navegador entrega um delta irregular.
+    while (remaining > 0.0001) {
+      const stepDelta = Math.min(remaining, 1 / 120);
+      remaining -= stepDelta;
+      const dx = (input.x / inputLength) * speed * stepDelta;
+      const dy = (input.y / inputLength) * speed * stepDelta;
+      movedAny = moveAxisContinuousFinal(dx, dy) || movedAny;
+    }
+
+    if (movedAny) {
+      player.moving = true;
+      lastRealMovementAt = nowMsContinuousMove();
+      walkCycleDistance += speed * Math.min(Math.max(delta || 0, 0), 0.05);
+      player.frame = Math.floor(walkCycleDistance / 8) % 4;
+      player.animTimer = 0;
+      try { handleMapTransitions?.(); } catch (error) {}
+      try { updateSwimming?.(Math.min(Math.max(delta || 0, 0), 0.05)); } catch (error) {}
+      try {
+        camera.x = clamp(player.x + player.width / 2 - canvas.width / 2, 0, Math.max(0, getSceneWidth() - canvas.width));
+        camera.y = clamp(player.y + player.height / 2 - canvas.height / 2, 0, Math.max(0, getSceneHeight() - canvas.height));
+      } catch (error) {}
+    }
+
+    return movedAny;
+  }
+
+  // Evita autosave/localStorage no exato instante em que o player está andando.
+  try {
+    if (typeof writeSaveRaw === "function" && !window.ETERNAL_RIFT_DELAY_SAVE_WHILE_MOVING) {
+      window.ETERNAL_RIFT_DELAY_SAVE_WHILE_MOVING = true;
+      const writeSaveRawBeforeContinuousMove = writeSaveRaw;
+      let queuedSavePayload = null;
+      writeSaveRaw = function writeSaveRawDelayWhileMoving(payload) {
+        const movingNow = nowMsContinuousMove() - lastRealMovementAt < 280;
+        if (movingNow && gameStarted && !gameOver) {
+          queuedSavePayload = payload;
+          return true;
+        }
+        return writeSaveRawBeforeContinuousMove(payload);
+      };
+      setInterval(() => {
+        if (!queuedSavePayload) return;
+        if (nowMsContinuousMove() - lastRealMovementAt < 500) return;
+        const payload = queuedSavePayload;
+        queuedSavePayload = null;
+        try { writeSaveRawBeforeContinuousMove(payload); } catch (error) {}
+      }, 1200);
+    }
+  } catch (error) {}
+
+  const updateBeforeContinuousFinal = typeof update === "function" ? update : null;
+  update = function updateContinuousMovementFinal(delta) {
+    const safeDelta = Math.min(Math.max(Number(delta) || 0, 0), 0.05);
+    const moved = applyContinuousPlayerMovement(safeDelta);
+    const savedFrame = player.frame;
+    const savedMoving = player.moving;
+    const savedAnimTimer = player.animTimer;
+
+    suppressOriginalMovementInput = true;
+    try {
+      if (updateBeforeContinuousFinal) updateBeforeContinuousFinal(safeDelta);
+    } finally {
+      suppressOriginalMovementInput = false;
+    }
+
+    if (moved || nowMsContinuousMove() - lastRealMovementAt < 60) {
+      player.moving = true;
+      player.frame = savedFrame;
+      player.animTimer = savedAnimTimer;
+      try {
+        camera.x = clamp(player.x + player.width / 2 - canvas.width / 2, 0, Math.max(0, getSceneWidth() - canvas.width));
+        camera.y = clamp(player.y + player.height / 2 - canvas.height / 2, 0, Math.max(0, getSceneHeight() - canvas.height));
+      } catch (error) {}
+    } else {
+      player.moving = savedMoving && !movementBlockedFinal();
+    }
+  };
+
+  // Loop final único: deixa o navegador entregar todos os frames possíveis.
+  gameLoop = function gameLoopContinuousMovementFinal(time) {
+    const now = Number(time || nowMsContinuousMove());
+    if (!lastContinuousLoopTime) lastContinuousLoopTime = now;
+    let delta = (now - lastContinuousLoopTime) / 1000;
+    lastContinuousLoopTime = now;
+    if (!Number.isFinite(delta) || delta <= 0) delta = 1 / 60;
+    delta = Math.min(delta, 0.05);
+
+    try {
+      update(delta);
+      draw();
+    } catch (error) {
+      showErrorMessage?.(error);
+    }
+    requestAnimationFrame(gameLoop);
+  };
+
+  try {
+    localStorage.setItem("eternal-rift-performance-mode-v2", "balanced");
+    document.body?.classList.remove("performance-economy", "performance-lite");
+    if (window.ER_PERFORMANCE && typeof window.ER_PERFORMANCE === "object") {
+      window.ER_PERFORMANCE.fpsMobile = 60;
+      window.ER_PERFORMANCE.fpsPcLite = 60;
+      window.ER_PERFORMANCE.fpsPc = 60;
+      window.ER_PERFORMANCE.lite = false;
+    }
+  } catch (error) {}
+
+  setTimeout(() => {
+    try {
+      ensureCanvasSize?.(true);
+      updateHud?.(true);
+      showHudToast?.("Movimento contínuo ativado: sem pausas.", 2);
+    } catch (error) {}
+  }, 350);
 })();

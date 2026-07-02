@@ -5624,3 +5624,60 @@ body.is-mobile .adventurer-bag.real-mobile-inventory.hidden {
   position: relative !important;
   z-index: 9999 !important;
 }
+
+
+/* ==================================================
+   ETERNAL RIFT: ajustes anti-travamento PC + MOBILE
+   ================================================== */
+html,
+body,
+.game-shell,
+.game-panel,
+#gameCanvas,
+.touch-controls,
+.mobile-top-actions {
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+.game-panel,
+#gameCanvas {
+  contain: layout paint size;
+}
+
+body.performance-lite .game-panel,
+body.performance-lite .hud > div,
+body.performance-lite .hud button,
+body.performance-lite .touch-button,
+body.performance-lite .panel,
+body.performance-lite .info-panel,
+body.performance-lite .dialog,
+body.performance-lite .adventurer-bag {
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+body.performance-lite .start-portal span,
+body.performance-lite .orientation-hint,
+body.performance-lite .hud-toast {
+  animation: none !important;
+}
+
+body.performance-economy .mini-map {
+  opacity: 0.78;
+}
+
+body.is-mobile.performance-lite .mini-map {
+  width: 118px !important;
+  height: 86px !important;
+}
+
+body.is-mobile.performance-lite .touch-button {
+  filter: none !important;
+}
+
+body.is-mobile.performance-lite .hud > div,
+body.is-mobile.performance-lite .hud button {
+  min-height: 28px !important;
+}
