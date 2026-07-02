@@ -375,3 +375,12 @@ Trava final do inventário mobile: o botão Fechar agora usa fechamento direto p
 - Autosave é adiado enquanto o personagem está andando, evitando microtravadas no exato momento do movimento.
 - O loop final usa `requestAnimationFrame` sem frame-skip artificial.
 - `node --check app.js` passou sem erros.
+
+## Correção mobile definitiva
+- Joystick refeito para funcionar com Pointer Events e Touch Events.
+- O dedo pode arrastar para fora do círculo sem perder movimento.
+- Botões mobile agora têm interceptação própria para ataque, inventário, ação, poderes, poção, dash e pausa.
+- Inventário mobile abre e fecha com estado único, removendo conflitos de patches antigos.
+- Removida a pausa automática causada por blur falso no celular, que bloqueava movimento e ataque.
+- CSS final força controles visíveis e clicáveis no mobile.
+- `node --check app.js` passou sem erro.

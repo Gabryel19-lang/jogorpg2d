@@ -5681,3 +5681,135 @@ body.is-mobile.performance-lite .hud > div,
 body.is-mobile.performance-lite .hud button {
   min-height: 28px !important;
 }
+
+/* ==================================================
+   ETERNAL RIFT: CSS final para controles MOBILE
+   ================================================== */
+body.mobile-controls-fixed,
+body.mobile-controls-fixed .game-shell,
+body.mobile-controls-fixed .game-panel,
+body.mobile-controls-fixed #gameCanvas {
+  touch-action: none !important;
+  overscroll-behavior: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+body.mobile-controls-fixed .touch-controls,
+body.is-mobile .touch-controls {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9000 !important;
+  display: block !important;
+  pointer-events: none !important;
+  touch-action: none !important;
+}
+
+body.mobile-controls-fixed .joystick-base,
+body.is-mobile .joystick-base {
+  display: block !important;
+  pointer-events: auto !important;
+  touch-action: none !important;
+  left: max(12px, env(safe-area-inset-left)) !important;
+  bottom: max(14px, env(safe-area-inset-bottom)) !important;
+  width: clamp(110px, 24vw, 148px) !important;
+  height: clamp(110px, 24vw, 148px) !important;
+  opacity: 0.92 !important;
+  z-index: 9001 !important;
+}
+
+body.mobile-controls-fixed .joystick-stick,
+body.is-mobile .joystick-stick {
+  pointer-events: none !important;
+}
+
+body.mobile-controls-fixed .touch-actions,
+body.is-mobile .touch-actions {
+  display: grid !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  bottom: max(10px, env(safe-area-inset-bottom)) !important;
+  grid-template-columns: repeat(4, clamp(42px, 9.2vw, 56px)) !important;
+  gap: 5px !important;
+  z-index: 9002 !important;
+}
+
+body.mobile-controls-fixed .touch-actions .touch-button,
+body.is-mobile .touch-actions .touch-button,
+body.mobile-controls-fixed .mobile-top-actions .touch-button,
+body.is-mobile .mobile-top-actions .touch-button {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  min-height: clamp(38px, 8vw, 52px) !important;
+  min-width: clamp(42px, 9vw, 56px) !important;
+  opacity: 0.92 !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+body.mobile-controls-fixed #touchAttackButton,
+body.is-mobile #touchAttackButton,
+body.mobile-controls-fixed #touchActionButton,
+body.is-mobile #touchActionButton {
+  min-height: clamp(48px, 10vw, 62px) !important;
+  min-width: clamp(50px, 10vw, 66px) !important;
+}
+
+body.mobile-controls-fixed .mobile-top-actions,
+body.is-mobile .mobile-top-actions {
+  display: flex !important;
+  position: fixed !important;
+  top: max(50px, calc(env(safe-area-inset-top) + 42px)) !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  z-index: 9010 !important;
+  pointer-events: auto !important;
+}
+
+body.mobile-controls-fixed #inventoryPanel.real-mobile-inventory:not(.hidden),
+body.is-mobile #inventoryPanel.real-mobile-inventory:not(.hidden),
+body.mobile-controls-fixed #inventoryPanel:not(.hidden),
+body.is-mobile #inventoryPanel:not(.hidden) {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9500 !important;
+  width: min(92vw, 720px) !important;
+  max-height: min(82dvh, 620px) !important;
+  overflow: auto !important;
+}
+
+body.mobile-controls-fixed #inventoryPanel.hidden,
+body.is-mobile #inventoryPanel.hidden,
+body.mobile-controls-fixed #inventoryPanel.force-closed-inventory,
+body.is-mobile #inventoryPanel.force-closed-inventory {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+@media (pointer: coarse) and (orientation: landscape) {
+  body.mobile-controls-fixed #inventoryPanel:not(.hidden),
+  body.is-mobile #inventoryPanel:not(.hidden) {
+    width: min(80vw, 760px) !important;
+    max-height: 78dvh !important;
+  }
+
+  body.mobile-controls-fixed .joystick-base,
+  body.is-mobile .joystick-base {
+    width: clamp(96px, 15vw, 128px) !important;
+    height: clamp(96px, 15vw, 128px) !important;
+  }
+
+  body.mobile-controls-fixed .touch-actions,
+  body.is-mobile .touch-actions {
+    grid-template-columns: repeat(4, clamp(38px, 6.8vw, 50px)) !important;
+  }
+}

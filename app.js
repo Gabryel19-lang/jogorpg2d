@@ -37261,3 +37261,393 @@ if (typeof window !== 'undefined' && typeof window.homeActionMessage !== 'functi
     } catch (error) {}
   }, 350);
 })();
+
+/* ==================================================
+   ETERNAL RIFT: CORREÇÃO MOBILE DEFINITIVA
+   - joystick funciona com pointer + touch e arraste fora do círculo
+   - inventário abre/fecha sem depender dos patches antigos
+   - ataque/interação/botões disparam no mobile sem clique fantasma
+   - remove pausa automática causada por blur falso no celular
+   ================================================== */
+(function eternalRiftMobileControlsDefinitiveFix() {
+  if (typeof window !== "undefined" && window.ETERNAL_RIFT_MOBILE_CONTROLS_DEFINITIVE_FIX) return;
+  if (typeof window !== "undefined") window.ETERNAL_RIFT_MOBILE_CONTROLS_DEFINITIVE_FIX = true;
+
+  const MOBILE_MATCH = "(pointer: coarse), (max-width: 880px), (max-height: 540px)";
+  const CONTROL_COOLDOWN_MS = 360;
+  const actionLastRun = new Map();
+  let manualPauseRequestUntil = 0;
+  let stableJoystickPointerId = null;
+  let stableJoystickTouchId = null;
+  let stableJoystickActive = false;
+  let lastStableJoystickVector = { x: 0, y: 0, strength: 0 };
+  let lastStableJoystickAt = 0;
+
+  function nowMobileFix() {
+    return typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+  }
+
+  function isMobileLayoutFix() {
+    return Boolean(window.matchMedia?.(MOBILE_MATCH)?.matches || document.body?.classList.contains("is-mobile"));
+  }
+
+  function safePrevent(event) {
+    try { event?.preventDefault?.(); } catch (error) {}
+    try { event?.stopPropagation?.(); } catch (error) {}
+    try { event?.stopImmediatePropagation?.(); } catch (error) {}
+  }
+
+  function markMobileBodyFix() {
+    const mobile = isMobileLayoutFix();
+    document.body?.classList.toggle("is-mobile", mobile);
+    document.body?.classList.toggle("mobile-controls-fixed", mobile);
+    document.body?.classList.toggle("mobile-portrait", mobile && window.innerHeight > window.innerWidth);
+    document.body?.classList.toggle("mobile-landscape", mobile && window.innerWidth >= window.innerHeight);
+  }
+
+  const updateDeviceModeBeforeMobileFix = typeof updateDeviceMode === "function" ? updateDeviceMode : null;
+  updateDeviceMode = function updateDeviceModeMobileControlFix() {
+    const result = updateDeviceModeBeforeMobileFix?.();
+    markMobileBodyFix();
+    return result;
+  };
+
+  function resetStableJoystickFix() {
+    stableJoystickPointerId = null;
+    stableJoystickTouchId = null;
+    stableJoystickActive = false;
+    lastStableJoystickVector = { x: 0, y: 0, strength: 0 };
+    if (typeof joystick === "object" && joystick) {
+      joystick.active = false;
+      joystick.pointerId = null;
+      joystick.x = 0;
+      joystick.y = 0;
+      joystick.strength = 0;
+    }
+    if (joystickStick) joystickStick.style.transform = "translate(-50%, -50%)";
+  }
+
+  function updateStableJoystickFromPoint(clientX, clientY) {
+    if (!joystickBase || !joystickStick || !isMobileLayoutFix()) return;
+    const rect = joystickBase.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const radius = Math.max(26, rect.width * 0.42);
+    const dx = Number(clientX || centerX) - centerX;
+    const dy = Number(clientY || centerY) - centerY;
+    const distance = Math.hypot(dx, dy);
+    const clampedDistance = Math.min(distance, radius);
+    const angle = Math.atan2(dy, dx);
+    const stickX = Math.cos(angle) * clampedDistance;
+    const stickY = Math.sin(angle) * clampedDistance;
+    const deadzone = Math.max(5, rect.width * 0.045);
+    const strength = distance > deadzone ? clamp(distance / radius, 0, 1) : 0;
+    const x = strength > 0 ? dx / Math.max(distance, 1) : 0;
+    const y = strength > 0 ? dy / Math.max(distance, 1) : 0;
+
+    stableJoystickActive = true;
+    lastStableJoystickAt = nowMobileFix();
+    lastStableJoystickVector = { x, y, strength };
+
+    joystick.active = true;
+    joystick.pointerId = stableJoystickPointerId;
+    joystick.centerX = centerX;
+    joystick.centerY = centerY;
+    joystick.x = x;
+    joystick.y = y;
+    joystick.strength = strength;
+    joystickStick.style.transform = `translate(calc(-50% + ${stickX}px), calc(-50% + ${stickY}px))`;
+  }
+
+  function bindStableJoystickFix() {
+    if (!joystickBase || joystickBase.dataset.mobileDefinitiveJoystick === "true") return;
+    joystickBase.dataset.mobileDefinitiveJoystick = "true";
+    joystickBase.style.touchAction = "none";
+    joystickBase.style.userSelect = "none";
+    joystickBase.style.webkitUserSelect = "none";
+
+    joystickBase.addEventListener("pointerdown", (event) => {
+      if (!isMobileLayoutFix()) return;
+      safePrevent(event);
+      stableJoystickPointerId = event.pointerId;
+      stableJoystickTouchId = null;
+      try { joystickBase.setPointerCapture(event.pointerId); } catch (error) {}
+      updateStableJoystickFromPoint(event.clientX, event.clientY);
+    }, true);
+
+    window.addEventListener("pointermove", (event) => {
+      if (!isMobileLayoutFix() || stableJoystickPointerId === null || event.pointerId !== stableJoystickPointerId) return;
+      safePrevent(event);
+      updateStableJoystickFromPoint(event.clientX, event.clientY);
+    }, true);
+
+    const pointerRelease = (event) => {
+      if (stableJoystickPointerId === null || event.pointerId !== stableJoystickPointerId) return;
+      safePrevent(event);
+      resetStableJoystickFix();
+    };
+    window.addEventListener("pointerup", pointerRelease, true);
+    window.addEventListener("pointercancel", pointerRelease, true);
+
+    joystickBase.addEventListener("touchstart", (event) => {
+      if (!isMobileLayoutFix()) return;
+      const touch = event.changedTouches?.[0] || event.touches?.[0];
+      if (!touch) return;
+      safePrevent(event);
+      stableJoystickTouchId = touch.identifier;
+      stableJoystickPointerId = null;
+      updateStableJoystickFromPoint(touch.clientX, touch.clientY);
+    }, { capture: true, passive: false });
+
+    window.addEventListener("touchmove", (event) => {
+      if (!isMobileLayoutFix() || stableJoystickTouchId === null) return;
+      const touches = Array.from(event.touches || []);
+      const touch = touches.find((item) => item.identifier === stableJoystickTouchId) || touches[0];
+      if (!touch) return;
+      safePrevent(event);
+      updateStableJoystickFromPoint(touch.clientX, touch.clientY);
+    }, { capture: true, passive: false });
+
+    const touchRelease = (event) => {
+      if (stableJoystickTouchId === null) return;
+      const changed = Array.from(event.changedTouches || []);
+      if (changed.length && !changed.some((item) => item.identifier === stableJoystickTouchId)) return;
+      safePrevent(event);
+      resetStableJoystickFix();
+    };
+    window.addEventListener("touchend", touchRelease, { capture: true, passive: false });
+    window.addEventListener("touchcancel", touchRelease, { capture: true, passive: false });
+  }
+
+  function gameplayBlockedForMobileAction() {
+    return Boolean(!gameStarted || gameOver || pauseOpen || inventoryOpen || shopOpen || dialogOpen || isTypingInTextField?.());
+  }
+
+  function closePauseIfAutoMobileFix() {
+    if (pauseOpen && isMobileLayoutFix()) {
+      pauseOpen = false;
+      pausePanel?.classList.add("hidden");
+    }
+  }
+
+  const setPauseBeforeMobileFix = typeof setPause === "function" ? setPause : null;
+  setPause = function setPauseMobileFix(open) {
+    // Em celulares alguns navegadores disparam blur falso ao tocar nos controles.
+    // Isso abria a pausa por baixo e bloqueava joystick, ataque e inventário.
+    if (open === true && isMobileLayoutFix() && !document.hidden && nowMobileFix() > manualPauseRequestUntil) {
+      return false;
+    }
+    return setPauseBeforeMobileFix ? setPauseBeforeMobileFix(open) : undefined;
+  };
+
+  function setManualPauseMobileFix() {
+    manualPauseRequestUntil = nowMobileFix() + 420;
+    return setPauseBeforeMobileFix ? setPauseBeforeMobileFix(true) : setPause(true);
+  }
+
+  function hardOpenInventoryMobileFix(event) {
+    if (event) safePrevent(event);
+    if (!inventoryPanel || !gameStarted || gameOver) return false;
+
+    closePauseIfAutoMobileFix();
+    if (typeof closeOverlayPanels === "function") closeOverlayPanels();
+    if (typeof closeShop === "function") closeShop();
+
+    inventoryOpen = true;
+    inventoryPanel.classList.remove("hidden", "force-closed-inventory");
+    inventoryPanel.removeAttribute("data-force-closed");
+    inventoryPanel.removeAttribute("aria-hidden");
+    inventoryPanel.style.removeProperty("display");
+    inventoryPanel.style.removeProperty("visibility");
+    inventoryPanel.style.removeProperty("opacity");
+    inventoryPanel.style.removeProperty("pointer-events");
+    inventoryPanel.classList.toggle("real-mobile-inventory", isMobileLayoutFix());
+    inventoryPanel.classList.add("mobile-view-items");
+    inventoryPanel.classList.remove("mobile-view-equipment", "mobile-view-details");
+    document.body?.classList.toggle("real-mobile-inventory-active", isMobileLayoutFix());
+
+    if (typeof renderInventory === "function") renderInventory();
+    if (typeof playSound === "function") playSound("inventoryOpen");
+    if (typeof updateHud === "function") updateHud(true);
+    resetStableJoystickFix();
+    return true;
+  }
+
+  function hardCloseInventoryMobileFix(event) {
+    if (event) safePrevent(event);
+    if (!inventoryPanel) return false;
+    inventoryOpen = false;
+    inventoryPanel.classList.add("hidden", "force-closed-inventory");
+    inventoryPanel.setAttribute("data-force-closed", "true");
+    inventoryPanel.setAttribute("aria-hidden", "true");
+    inventoryPanel.style.setProperty("display", "none", "important");
+    inventoryPanel.style.setProperty("visibility", "hidden", "important");
+    inventoryPanel.style.setProperty("opacity", "0", "important");
+    inventoryPanel.style.setProperty("pointer-events", "none", "important");
+    document.body?.classList.remove("real-mobile-inventory-active");
+    if (typeof playSound === "function") playSound("inventoryClose");
+    resetStableJoystickFix();
+    return false;
+  }
+
+  const toggleInventoryBeforeMobileFix = typeof toggleInventory === "function" ? toggleInventory : null;
+  toggleInventory = function toggleInventoryMobileDefinitiveFix(force) {
+    const nextOpen = typeof force === "boolean" ? force : !inventoryOpen;
+    if (nextOpen) return hardOpenInventoryMobileFix();
+    return hardCloseInventoryMobileFix();
+  };
+  window.forceCloseInventoryPanel = hardCloseInventoryMobileFix;
+
+  function ensureWeaponForMobileAttack() {
+    try {
+      const key = getCurrentWeaponKey?.();
+      if (key && key !== "unarmed") return;
+      const preferred = ["sword", "spear", "bow", "staff"].find((weaponKey) => weapons?.[weaponKey] && player?.unlockedWeapons?.includes?.(weaponKey));
+      if (preferred) {
+        player.equippedWeaponKey = preferred;
+        currentWeaponIndex = Math.max(0, player.unlockedWeapons.indexOf(preferred));
+      }
+    } catch (error) {}
+  }
+
+  function runMobileActionOnce(id, event, action) {
+    if (!isMobileLayoutFix()) return;
+    safePrevent(event);
+    const now = nowMobileFix();
+    const fastAction = id === "attack" || id === "action" || id === "power";
+    const cooldown = fastAction ? 130 : CONTROL_COOLDOWN_MS;
+    if (now - Number(actionLastRun.get(id) || 0) < cooldown) return;
+    actionLastRun.set(id, now);
+    closePauseIfAutoMobileFix();
+    try { action(); } catch (error) { if (typeof showErrorMessage === "function") showErrorMessage(error); }
+  }
+
+  function bindStableButton(button, id, action) {
+    if (!button || button.dataset.mobileDefinitiveButton === "true") return;
+    button.dataset.mobileDefinitiveButton = "true";
+    button.style.touchAction = "manipulation";
+    const down = (event) => {
+      runMobileActionOnce(id, event, () => {
+        button.classList.add("is-pressed");
+        action();
+      });
+    };
+    const up = (event) => {
+      if (!isMobileLayoutFix()) return;
+      safePrevent(event);
+      button.classList.remove("is-pressed");
+      if (typeof clearMobilePressedButton === "function") clearMobilePressedButton(id);
+    };
+    button.addEventListener("pointerdown", down, true);
+    button.addEventListener("touchstart", down, { capture: true, passive: false });
+    button.addEventListener("mousedown", down, true);
+    button.addEventListener("click", down, true);
+    button.addEventListener("pointerup", up, true);
+    button.addEventListener("touchend", up, { capture: true, passive: false });
+    button.addEventListener("pointercancel", up, true);
+    button.addEventListener("touchcancel", up, { capture: true, passive: false });
+  }
+
+  function bindStableMobileButtonsFix() {
+    bindStableButton(touchInventoryButton, "inventory", () => inventoryOpen ? hardCloseInventoryMobileFix() : hardOpenInventoryMobileFix());
+    bindStableButton(touchAttackButton, "attack", () => {
+      if (gameplayBlockedForMobileAction()) return;
+      ensureWeaponForMobileAttack();
+      if (typeof triggerPrimaryAttack === "function") triggerPrimaryAttack();
+    });
+    bindStableButton(touchActionButton, "action", () => {
+      if (!gameStarted || gameOver || inventoryOpen || pauseOpen) return;
+      if (typeof toggleInteraction === "function") toggleInteraction();
+    });
+    bindStableButton(touchPotionButton, "potion", () => {
+      if (!gameplayBlockedForMobileAction() && typeof usePotion === "function") usePotion();
+    });
+    bindStableButton(touchWeaponButton, "weapon", () => {
+      if (!gameplayBlockedForMobileAction() && typeof cycleWeapon === "function") cycleWeapon();
+    });
+    bindStableButton(touchPowerButton, "power", () => {
+      if (!gameplayBlockedForMobileAction() && typeof useEquippedPower === "function") useEquippedPower();
+    });
+    bindStableButton(touchDashButton, "dash", () => {
+      if (!gameplayBlockedForMobileAction() && typeof dodgeDash === "function") dodgeDash();
+    });
+    bindStableButton(touchFireballButton, "fireball", () => {
+      if (!gameplayBlockedForMobileAction()) { equipPower?.(0); useEquippedPower?.(); }
+    });
+    bindStableButton(touchShockwaveButton, "shockwave", () => {
+      if (!gameplayBlockedForMobileAction()) { equipPower?.(2); useEquippedPower?.(); }
+    });
+    bindStableButton(touchHealButton, "heal", () => {
+      if (!gameplayBlockedForMobileAction()) { equipPower?.(3); useEquippedPower?.(); }
+    });
+    bindStableButton(touchPower1Button, "power1", () => equipPower?.(0));
+    bindStableButton(touchPower2Button, "power2", () => equipPower?.(1));
+    bindStableButton(touchPower3Button, "power3", () => equipPower?.(2));
+    bindStableButton(touchPower4Button, "power4", () => equipPower?.(3));
+    bindStableButton(mobilePauseButton, "pause", setManualPauseMobileFix);
+    bindStableButton(hudMenuButton, "hud-menu", setManualPauseMobileFix);
+    bindStableButton(mobileFullscreenButton, "fullscreen", () => requestGameFullscreen?.());
+    bindStableButton(startFullscreenButton, "start-fullscreen", () => requestGameFullscreen?.());
+    bindStableButton(closeInventoryButton, "close-inventory", hardCloseInventoryMobileFix);
+  }
+
+  const getMovementInputBeforeMobileControlsFix = typeof getMovementInput === "function" ? getMovementInput : null;
+  getMovementInput = function getMovementInputMobileControlsFix() {
+    if (isMobileLayoutFix()) {
+      const joyStrength = Number(joystick?.strength || lastStableJoystickVector.strength || 0);
+      if (stableJoystickActive || joystick?.active || joyStrength > 0.04 || nowMobileFix() - lastStableJoystickAt < 80) {
+        return {
+          x: Number(joystick?.x || lastStableJoystickVector.x || 0),
+          y: Number(joystick?.y || lastStableJoystickVector.y || 0),
+          strength: clamp(joyStrength, 0, 1)
+        };
+      }
+    }
+    return getMovementInputBeforeMobileControlsFix ? getMovementInputBeforeMobileControlsFix() : { x: 0, y: 0, strength: 0 };
+  };
+
+  document.addEventListener("pointerdown", (event) => {
+    const target = event.target;
+    if (target?.closest?.(".touch-controls, .mobile-top-actions, #inventoryPanel, #pausePanel, #dialogBox, #infoPanel")) {
+      return;
+    }
+  }, true);
+
+  document.addEventListener("touchmove", (event) => {
+    const target = event.target;
+    if (target?.closest?.(".touch-controls, #gameCanvas, .game-panel")) {
+      safePrevent(event);
+    }
+  }, { capture: true, passive: false });
+
+  document.addEventListener("keydown", (event) => {
+    if (inventoryOpen && (event.key === "Escape" || event.key === "i" || event.key === "I")) {
+      hardCloseInventoryMobileFix(event);
+    }
+  }, true);
+
+  function bootMobileControlFix() {
+    markMobileBodyFix();
+    bindStableJoystickFix();
+    bindStableMobileButtonsFix();
+    if (!inventoryOpen) hardCloseInventoryMobileFix();
+    try { updateMobilePowerButtons?.(); } catch (error) {}
+  }
+
+  window.addEventListener("resize", () => setTimeout(bootMobileControlFix, 80), { passive: true });
+  window.addEventListener("orientationchange", () => setTimeout(bootMobileControlFix, 180), { passive: true });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) resetStableJoystickFix();
+  }, { passive: true });
+
+  bootMobileControlFix();
+  setTimeout(bootMobileControlFix, 400);
+  setTimeout(() => {
+    try {
+      updateDeviceMode?.();
+      ensureCanvasSize?.(true);
+      updateHud?.(true);
+      if (typeof showHudToast === "function" && isMobileLayoutFix()) showHudToast("Controles mobile corrigidos.", 1.8);
+    } catch (error) {}
+  }, 700);
+})();
