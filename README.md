@@ -552,3 +552,27 @@ Regras recomendadas para teste no Realtime Database:
 - Tenta Firebase CDN em versões 10.12.5, 9.23.0 e 8.10.1.
 - Se falhar, aparece aviso para verificar internet/CDN.
 - Depois de subir no GitHub Pages, use `v=multiplayer-loader-fix`.
+
+
+## Correção de cache no celular
+- Versão: `mobile-cache-fix-20260702-1909`
+- O `index.html` agora tem meta tags de no-cache.
+- `styles.css`, `app.js` e ícones receberam `?v=mobile-cache-fix-20260702-1909`.
+- O jogo mostra no HUD: `Versão nova carregada: mobile-cache-fix-20260702-1909` quando o app.js novo realmente carrega.
+- Use no GitHub Pages:
+  `https://gabryel19-lang.github.io/eternal-rift/index.html?play=1&lite=1&room=sala1&v=mobile-cache-fix-20260702-1909`
+
+
+## Correção visual do jogador no multiplayer
+- Versão: `multiplayer-player-visual-fix-20260702-1920`
+- O jogador remoto não fica mais como um retângulo branco.
+- Agora usa um sprite estilo herói pixelado, com cabeça, elmo, braços, pernas e túnica.
+- Mantém barra de vida e nome no multiplayer.
+
+
+## Correção de piscadas no mobile
+- Versão: `mobile-no-flicker-decor-20260702-1935`
+- O canvas no celular não fica mais redimensionando por pequenas variações da barra do navegador.
+- A câmera é arredondada no mobile para evitar tremulação de pixels.
+- Flores no mobile usam desenho estático, sem bob/pulse.
+- CSS recebeu aceleração e renderização pixelada para diminuir flicker visual.

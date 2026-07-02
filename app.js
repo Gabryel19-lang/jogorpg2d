@@ -1,3 +1,15 @@
+
+/* ETERNAL_RIFT_VERSION_MARKER_mobile-cache-fix-20260702-1909 */
+(function eternalRiftVersionMarker() {
+  try {
+    window.ETERNAL_RIFT_CURRENT_VERSION = "multiplayer-player-visual-fix-20260702-1920";
+    console.log("Eternal Rift versão carregada:", "multiplayer-player-visual-fix-20260702-1920");
+    setTimeout(() => {
+      if (typeof showHudToast === "function") showHudToast("Versão nova carregada: multiplayer-player-visual-fix-20260702-1920");
+    }, 1800);
+  } catch (error) {}
+})();
+
 // Jogo 2D top-down em Canvas puro.
 // Tudo e desenhado com formas simples para ficar facil de estudar.
 
@@ -42972,37 +42984,87 @@ function radialGlow(x, y, radius, innerColor, outerColor) {
     const w = Number(p.width || 22);
     const h = Number(p.height || 26);
     const color = p.color || "#55e8ff";
+    const animSeed = Array.from(String(p.id || "online")).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    const legOffset = p.moving ? Math.round(Math.sin((performance.now() + animSeed * 17) / 120) * 1.7) : 0;
+    const sideArmOffset = p.moving ? Math.round(Math.cos((performance.now() + animSeed * 11) / 120) * 1.2) : 0;
 
     ctx.save();
-    ctx.globalAlpha = 0.94;
+    ctx.globalAlpha = 0.96;
 
-    // sombra
-    ctx.fillStyle = "rgba(10, 13, 28, 0.35)";
-    ctx.fillRect(x + 3, y + h - 2, w - 1, 5);
+    if (typeof drawSoftShadow === "function") {
+      drawSoftShadow(x + 3, y + 25, 22, 5, 0.22);
+    } else {
+      ctx.fillStyle = "rgba(10, 13, 28, 0.32)";
+      ctx.fillRect(x + 3, y + h - 2, w - 1, 5);
+    }
 
-    // aura online
-    ctx.fillStyle = color + "33";
-    ctx.fillRect(x - 2, y + 6, w + 4, h - 2);
+    const pulse = 0.15 + Math.sin((performance.now() + animSeed * 40) / 200) * 0.05;
+    ctx.fillStyle = `rgba(85, 232, 255, ${Math.max(0.08, pulse)})`;
+    ctx.fillRect(x - 3, y + 4, w + 6, h + 2);
 
-    // corpo pixel
-    ctx.fillStyle = "#11142e";
-    ctx.fillRect(x + 5, y + 8, w - 10, h - 7);
+    if (typeof pixelRect === "function") pixelRect(x + 5, y + 12, 17, 14, "#313a78");
+    else {
+      ctx.fillStyle = "#313a78";
+      ctx.fillRect(x + 5, y + 12, 17, 14);
+    }
+
+    // túnica / peito
     ctx.fillStyle = color;
-    ctx.fillRect(x + 7, y + 10, w - 14, h - 11);
+    ctx.fillRect(x + 8, y + 14, 11, 4);
+    ctx.fillStyle = "#e9ffff";
+    ctx.globalAlpha = 0.18;
+    ctx.fillRect(x + 9, y + 14, 4, 4);
+    ctx.globalAlpha = 0.96;
 
     // cabeça
-    ctx.fillStyle = "#fff3d6";
-    ctx.fillRect(x + 6, y + 1, w - 12, 10);
-    ctx.fillStyle = "#273052";
-    ctx.fillRect(x + 9, y + 4, 3, 3);
-    ctx.fillRect(x + w - 12, y + 4, 3, 3);
+    ctx.fillStyle = "#f4bd8f";
+    ctx.fillRect(x + 7, y + 4, 14, 10);
 
-    // indicador de direção
+    // cabelo / elmo
+    ctx.fillStyle = "#273052";
+    ctx.fillRect(x + 5, y + 2, 18, 5);
+    ctx.fillRect(x + 4, y + 6, 5, 8);
+
+    // faixa brilhante do elmo
+    ctx.fillStyle = "#5ad6e7";
+    ctx.fillRect(x + 7, y, 12, 5);
+    ctx.fillRect(x + 4, y + 5, 5, 7);
+
+    // joia
     ctx.fillStyle = "#fff264";
-    if (p.direction === "left") ctx.fillRect(x + 1, y + 13, 5, 5);
-    else if (p.direction === "right") ctx.fillRect(x + w - 6, y + 13, 5, 5);
-    else if (p.direction === "up") ctx.fillRect(x + w / 2 - 2, y + 7, 4, 4);
-    else ctx.fillRect(x + w / 2 - 2, y + h - 7, 4, 4);
+    ctx.fillRect(x + 18, y + 1, 3, 3);
+
+    // braços
+    ctx.fillStyle = "#f4bd8f";
+    ctx.fillRect(x + 3, y + 15 + sideArmOffset, 4, 8);
+    ctx.fillRect(x + 21, y + 15 - sideArmOffset, 4, 8);
+
+    // pernas
+    ctx.fillStyle = "#273052";
+    ctx.fillRect(x + 7, y + 25 + legOffset, 5, 6);
+    ctx.fillRect(x + 16, y + 25 - legOffset, 5, 6);
+
+    // rosto por direção
+    if (p.direction === "up") {
+      ctx.fillStyle = "#273052";
+      ctx.fillRect(x + 9, y + 6, 10, 2);
+    } else if (p.direction === "down") {
+      ctx.fillStyle = "#273052";
+      ctx.fillRect(x + 11, y + 9, 2, 2);
+      ctx.fillRect(x + 17, y + 9, 2, 2);
+    } else if (p.direction === "left") {
+      ctx.fillStyle = "#273052";
+      ctx.fillRect(x + 9, y + 9, 2, 2);
+    } else {
+      ctx.fillStyle = "#273052";
+      ctx.fillRect(x + 19, y + 9, 2, 2);
+    }
+
+    // pequena aura do jogador remoto
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = 0.28;
+    ctx.strokeRect(x + 6, y + 12, 15, 14);
+    ctx.globalAlpha = 0.96;
 
     drawOnlineHealth(p, x, y);
     drawOnlineName(p, x, y);
@@ -43065,4 +43127,165 @@ function radialGlow(x, y, radius, innerColor, outerColor) {
     get players() { return Array.from(onlinePlayers.values()); },
     reconnect: initOnlineMode
   };
+})();
+
+
+/* ==================================================
+   ETERNAL RIFT: correção de piscadas no mobile
+   - trava o tamanho interno do canvas no celular para evitar reescala a cada frame
+   - arredonda câmera no mobile
+   - tira animação/bob das flores no mobile
+   - reduz tremulação de decorações e tiles em celulares
+   ================================================== */
+(function eternalRiftMobileDecorationNoFlickerPatch() {
+  if (typeof window !== "undefined" && window.ETERNAL_RIFT_MOBILE_DECORATION_NO_FLICKER_PATCH) return;
+  if (typeof window !== "undefined") window.ETERNAL_RIFT_MOBILE_DECORATION_NO_FLICKER_PATCH = true;
+
+  const MOBILE_CANVAS_RESIZE_TOLERANCE = 52;
+  let lockedCanvasWidth = 0;
+  let lockedCanvasHeight = 0;
+  let lockedCssWidth = 0;
+  let lockedCssHeight = 0;
+  let lockedOrientation = "";
+
+  function mobileLike() {
+    try {
+      return Boolean(
+        isMobile ||
+        document.body?.classList.contains("is-mobile") ||
+        window.matchMedia?.("(pointer: coarse)")?.matches ||
+        window.matchMedia?.("(max-width: 880px)")?.matches
+      );
+    } catch (error) {
+      return Boolean(isMobile);
+    }
+  }
+
+  function getOrientationKey() {
+    return window.innerWidth > window.innerHeight ? "landscape" : "portrait";
+  }
+
+  function applyPixelCanvasState() {
+    try {
+      ctx.imageSmoothingEnabled = false;
+      miniCtx.imageSmoothingEnabled = false;
+    } catch (error) {}
+  }
+
+  const ensureCanvasSizeBeforeNoFlicker = ensureCanvasSize;
+  ensureCanvasSize = function ensureCanvasSizeMobileNoFlickerPatch() {
+    if (!mobileLike()) {
+      ensureCanvasSizeBeforeNoFlicker();
+      applyPixelCanvasState();
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const cssWidth = Math.max(320, Math.round(rect.width || window.innerWidth || 960));
+    const cssHeight = Math.max(240, Math.round(rect.height || window.innerHeight || 640));
+    const orientation = getOrientationKey();
+
+    const needsFreshSize =
+      !lockedCanvasWidth ||
+      !lockedCanvasHeight ||
+      orientation !== lockedOrientation ||
+      Math.abs(cssWidth - lockedCssWidth) > MOBILE_CANVAS_RESIZE_TOLERANCE ||
+      Math.abs(cssHeight - lockedCssHeight) > MOBILE_CANVAS_RESIZE_TOLERANCE;
+
+    if (needsFreshSize) {
+      ensureCanvasSizeBeforeNoFlicker();
+      lockedCanvasWidth = canvas.width;
+      lockedCanvasHeight = canvas.height;
+      lockedCssWidth = cssWidth;
+      lockedCssHeight = cssHeight;
+      lockedOrientation = orientation;
+    } else {
+      // Não mexe em canvas.width/height em variações pequenas do Chrome mobile.
+      // Alterar essas propriedades limpa o canvas e causa piscadas visuais.
+      if (canvas.width !== lockedCanvasWidth && Math.abs(canvas.width - lockedCanvasWidth) > MOBILE_CANVAS_RESIZE_TOLERANCE) {
+        lockedCanvasWidth = canvas.width;
+      }
+      if (canvas.height !== lockedCanvasHeight && Math.abs(canvas.height - lockedCanvasHeight) > MOBILE_CANVAS_RESIZE_TOLERANCE) {
+        lockedCanvasHeight = canvas.height;
+      }
+    }
+
+    if (miniMapCanvas.width <= 0) miniMapCanvas.width = 170;
+    if (miniMapCanvas.height <= 0) miniMapCanvas.height = 124;
+    applyPixelCanvasState();
+  };
+
+  function drawMobileStaticFlower(obj) {
+    const colors = { pink: "#ff7ab5", yellow: "#fff264", blue: "#55c4ff" };
+    const main = colors[obj.color] || "#fff264";
+    const x = Math.round(obj.x);
+    const y = Math.round(obj.y);
+
+    if (typeof drawSoftShadow === "function") drawSoftShadow(x + 2, y + 15, 14, 3, 0.12);
+
+    ctx.fillStyle = "#236f48";
+    ctx.fillRect(x + 7, y + 10, 2, 9);
+    ctx.fillStyle = "#3fa164";
+    ctx.fillRect(x + 4, y + 15, 4, 2);
+    ctx.fillRect(x + 10, y + 13, 4, 2);
+
+    ctx.fillStyle = main;
+    ctx.fillRect(x + 6, y + 4, 7, 7);
+    ctx.fillRect(x + 4, y + 7, 11, 4);
+    ctx.fillStyle = "#fff3d6";
+    ctx.fillRect(x + 8, y + 7, 2, 2);
+  }
+
+  if (typeof drawFlower === "function") {
+    const drawFlowerBeforeNoFlicker = drawFlower;
+    drawFlower = function drawFlowerMobileNoFlicker(obj) {
+      if (mobileLike()) return drawMobileStaticFlower(obj);
+      return drawFlowerBeforeNoFlicker(obj);
+    };
+  }
+
+  const updateBeforeNoFlicker = update;
+  update = function updateMobileNoFlickerPatch(delta) {
+    const result = updateBeforeNoFlicker(delta);
+    if (mobileLike() && camera) {
+      camera.x = Math.round(camera.x);
+      camera.y = Math.round(camera.y);
+    }
+    return result;
+  };
+
+  const drawBeforeNoFlicker = draw;
+  draw = function drawMobileNoFlickerPatch() {
+    applyPixelCanvasState();
+    return drawBeforeNoFlicker();
+  };
+
+  window.addEventListener("orientationchange", () => {
+    lockedCanvasWidth = 0;
+    lockedCanvasHeight = 0;
+    setTimeout(() => {
+      lockedCanvasWidth = 0;
+      lockedCanvasHeight = 0;
+      try { ensureCanvasSize(); } catch (error) {}
+    }, 260);
+  });
+
+  window.addEventListener("resize", () => {
+    if (!mobileLike()) return;
+    const rect = canvas.getBoundingClientRect();
+    const cssWidth = Math.max(320, Math.round(rect.width || window.innerWidth || 960));
+    const cssHeight = Math.max(240, Math.round(rect.height || window.innerHeight || 640));
+    if (Math.abs(cssWidth - lockedCssWidth) > MOBILE_CANVAS_RESIZE_TOLERANCE || Math.abs(cssHeight - lockedCssHeight) > MOBILE_CANVAS_RESIZE_TOLERANCE) {
+      lockedCanvasWidth = 0;
+      lockedCanvasHeight = 0;
+    }
+  });
+
+  try {
+    window.ETERNAL_RIFT_CURRENT_VERSION = "mobile-no-flicker-decor-20260702-1935";
+    console.log("Eternal Rift versão carregada:", "mobile-no-flicker-decor-20260702-1935");
+    setTimeout(() => {
+      if (typeof showHudToast === "function") showHudToast("Mobile sem piscadas: mobile-no-flicker-decor-20260702-1935");
+    }, 1600);
+  } catch (error) {}
 })();

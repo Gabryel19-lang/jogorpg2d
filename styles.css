@@ -1,3 +1,4 @@
+/* ETERNAL_RIFT_CSS_VERSION_mobile-cache-fix-20260702-1909 */
 :root {
   color-scheme: dark;
   --bg: #273052;
@@ -7286,4 +7287,23 @@ body.hud-editor-open #infoPanel {
     right: 10px;
     bottom: calc(84px + env(safe-area-inset-bottom));
   }
+}
+
+
+/* ===== Eternal Rift: anti-piscada de decorações no mobile ===== */
+/* ETERNAL_RIFT_CSS_VERSION_mobile-no-flicker-decor-20260702-1935 */
+.game-panel,
+#gameCanvas,
+#miniMapCanvas {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+body.is-mobile .game-panel,
+body.is-mobile #gameCanvas,
+body.is-mobile #miniMapCanvas {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  image-rendering: pixelated;
 }
